@@ -17,6 +17,7 @@ class Game:
         #self.players = [Player(0), Player(1)]       # array[object*]: contenant les 2 joueurs
         self.turn_count = 0                         # int: le nombre de tour
         self.active_player = 0                      # int: player_id
+        self.active_piece = None                    # str: piece_id
 
         # pygame var
         self.instance = pygame.init()
@@ -101,18 +102,42 @@ class Game:
                 # left click
                 if pygame.mouse.get_pressed()[0]:
                     x, y = event.pos
+
+                    # vérifie si une pièce est sélectionnée en regardant les coordonnées des pièces et celles du click
                     for piece in self.pieces:
-                        if piece.img.get_rect(topleft=(piece.coordinates[0], piece.coordinates[1])).collidepoint(x, y):
+                        piece_body = piece.img.get_rect(topleft=(piece.coordinates[0], piece.coordinates[1]))
+
+                        # contact du click et de Surface: affiche un curseur de sélection
+                        if piece_body.collidepoint(x, y) and piece.selected == False and self.active_piece == None:
+                            piece.selected = True
+                            self.active_piece = piece.id
                             print(piece.id)
                             print(f'Mouse clicked at {x}, {y}')
-                            piece.selected = True
-                            print(piece.selected)
- 
+
+                        # contact du click et de Surface mais la pièce est déjà sélectionnée: enlève le curseur de sélection
+                        elif piece_body.collidepoint(x, y) and piece.selected == True and self.active_piece != None:
+                            piece.selected = False
+                            self.active_piece = None
 
                 # right click
                 elif pygame.mouse.get_pressed()[2]:
-                    print("right click")
+                    
+                    # désélectionne la pièce actuellement sélectionnée
+                    if self.active_piece != None:
+                        temp_piece = self.get_piece_by_id(self.active_piece)
+                        temp_piece.selected = False
+                        self.active_piece = None
 
+    # récupère la pièce grâce à son id
+    def get_piece_by_id(self, piece_id):
+        for piece in self.pieces:
+            if piece_id != None and piece.id == piece_id:
+                return piece
+            elif piece_id == None and piece.id == self.active_piece:
+                return piece
+ 
+        print("no Piece found")
+        
     # dessine le jeu
     def render(self):
         pygame.display.flip()                                           # Refresh on-screen display
