@@ -111,8 +111,6 @@ class Game:
                         if piece_body.collidepoint(x, y) and piece.selected == False and self.active_piece == None:
                             piece.selected = True
                             self.active_piece = piece.id
-                            print(piece.id)
-                            print(f'Mouse clicked at {x}, {y}')
 
                         # contact du click et de Surface mais la pièce est déjà sélectionnée: enlève le curseur de sélection
                         elif piece_body.collidepoint(x, y) and piece.selected == True and self.active_piece != None:
@@ -151,5 +149,6 @@ class Game:
 
             # si une pièce est selectionnée, place un curseur jaune sur la case
             if piece.selected == True:
-                piece.draw_select_icon(self.display)
+                piece.draw_select_icon(self.display, self.tile_size)
+                piece.draw_moves(self.display, self.tile_size, self.pieces)
             

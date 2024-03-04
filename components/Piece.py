@@ -9,6 +9,9 @@ class Piece:
         self.coordinates = self.get_coordinates(chess_coordinates, tile_size_unit)          # tupple[int,int] : [x,y]
         self.img = pygame.transform.scale(pygame.image.load(self.get_image()), (85,85))     # method: load the correct img
         self.selected = False       # bool: si la pièce est active
+        self.move_count = 0         # int: compte les moves 
+        self.detect_colision = True     # bool: détecte la colision entre les pièces
+        self.body = pygame.Rect(self.coordinates[0], self.coordinates[1], tile_size_unit, tile_size_unit)   # pygame object
 
     # charge l'image qui correspond au type et à la couleur de la pièce
     def get_image(self):
@@ -120,16 +123,177 @@ class Piece:
         display.blit(self.img, self.coordinates)
 
     # dessine un rectangle qui montre la sélection de la pièce
-    def draw_select_icon(self, display):
-        pygame.draw.rect(display, (255, 255, 0), (self.coordinates[0], self.coordinates[1], 100, 100), 4)
+    def draw_select_icon(self, display, tile_size_unit):
+        pygame.draw.rect(display, (255, 255, 0), (self.coordinates[0], self.coordinates[1], tile_size_unit, tile_size_unit), 4)
+
+    # dessine les mouvements de la pièce sur le plateau
+    def draw_moves(self, display, tile_size_unit, pieces_list):
+        destinations = self.check_move(tile_size_unit, pieces_list)
+
+        # affiche les destinations possible récupérées
+        for dest in destinations:
+            new_x = self.coordinates[0]+dest[0]*tile_size_unit
+            new_y = self.coordinates[1]+dest[1]*tile_size_unit
+            pygame.draw.rect(display, (0, 255, 0), (new_x, new_y, tile_size_unit, tile_size_unit), 4)
+
 
     # bouge la pièce à une destination
     def move(self):
         pass
 
     # vérifie les possibilités de mouvements de la pièce
-    def check_move(self):
-        pass
+    def check_move(self, tile_size_unit, pieces_list):
+        moves = []
+
+        # pawn piece
+        if self.type == 0:
+            moves = self.pawn_moveset(tile_size_unit, pieces_list)
+
+        # white knight and black knight
+        if self.type == 1:
+            moves = self.knight_moveset(tile_size_unit, pieces_list)
+
+        # white bishop and black bishop
+        if self.type == 2:
+            moves = self.bishop_moveset(tile_size_unit, pieces_list)
+
+        # white rook and black rook
+        if self.type == 3:
+            moves = self.rook_moveset(tile_size_unit, pieces_list)
+
+        # white queen and black queen
+        if self.type == 4:
+            moves = self.queen_moveset(tile_size_unit, pieces_list)
+
+        # white king and black king
+        if self.type == 5:
+            moves = self.king_moveset(tile_size_unit, pieces_list)
+        
+        return moves
+        
+    # check si une pièce se trouve aux coordonnées
+    def check_piece_at_coordinates(self, coordinates, pieces_list):
+        for piece in pieces_list:
+            if piece.coordinates == (coordinates[0], coordinates[1]):  
+                if piece.color != self.color:
+                    print("capture possible")
+            return True
+
+    # récupère le move set d'un pion sous forme array[ [x,y]* ]
+    def pawn_moveset(self, tile_size_unit, pieces_list):
+        # white pawn first move
+        if self.type == 0 and self.color == 0 and self.move_count == 0:
+            moves = [ [0,-1], [0,-2] ]
+        # white pawn
+        elif self.type == 0 and self.color == 0:
+            moves = [ [0,-1] ]
+        # black pawn first move
+        elif self.type == 0 and self.color == 1 and self.move_count == 0:
+            moves = [ [0,1], [0,2] ]
+        # black pawn
+        elif self.type == 0 and self.color == 1:
+            moves = [ [0,1] ]
+        
+        return moves
+    
+    # récupère le move set d'un cavalier sous forme array[ [x,y]* ]
+    def knight_moveset(self, tile_size_unit, pieces_list):
+        return [ [-1, -2], [1, -2], [-1, 2], [1, 2], [-2, -1], [-2, 1], [2, -1], [2, 1] ]
+    
+    # récupère le move set d'un fou sous forme array[ [x,y]* ]
+    def bishop_moveset(self, tile_size_unit, pieces_list):
+        moves = []
+
+        # white bishop and black bishop, and white queen and black queen for diagonal moves
+        if self.type == 2 or self.type == 4:
+            vector = [ [-1, -1], [1, -1], [-1, 1], [1, 1]]
+            
+            for i in range(4):
+                x = self.coordinates[0]/tile_size_unit
+                y = self.coordinates[1]/tile_size_unit
+                loop = True
+                vX = 0
+                vY = 0
+
+                # calculte les destinations tant qu'on est dans le plateau
+                while(loop):
+                    # ajuste les coordonnées avec le vecteur
+                    x = x + vector[i][0]
+                    y = y + vector[i][1]
+
+                    # check si la case est occupée par une pièce
+                    new_x = x * tile_size_unit
+                    new_y = y * tile_size_unit
+                    if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                            loop = False
+                            continue
+
+                    # quand x ou y arrive au bord du plateau stop cette loop
+                    if x < 0 or y < 0 or x >= 8 or y >= 8:
+                        loop = False
+                    elif loop == True:
+                        # augmente la distance parcourue à chaque loop
+                        vX = vX + vector[i][0]
+                        vY = vY + vector[i][1]
+                        moves.append([ vX, vY ])
+
+        return moves
+
+    # récupère le move set d'une tour sous forme array[ [x,y]* ]
+    def rook_moveset(self, tile_size_unit, pieces_list):
+        moves = []
+
+        # white rook and black rook, and white queen and black queen for vertical and horizontal moves
+        if self.type == 3 or self.type == 4:
+            vector = [ [-1, 0], [0, -1], [1, 0], [0, 1]]
+            
+            for i in range(4):
+                x = self.coordinates[0]/tile_size_unit
+                y = self.coordinates[1]/tile_size_unit
+                loop = True
+                vX = 0
+                vY = 0
+
+                # calculte les destinations tant qu'on est dans le plateau
+                while(loop):
+                    # ajuste les coordonnées avec le vecteur
+                    x = x + vector[i][0]
+                    y = y + vector[i][1]
+
+                    # check si la case est occupée par une pièce
+                    new_x = x * tile_size_unit
+                    new_y = y * tile_size_unit
+                    if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                            loop = False
+                            continue
+
+                    # quand x ou y arrive au bord du plateau stop cette loop
+                    if x < 0 or y < 0 or x >= 8 or y >= 8:
+                        loop = False
+                    elif loop == True:
+                        # augmente la distance parcourue à chaque loop
+                        vX = vX + vector[i][0]
+                        vY = vY + vector[i][1]
+                        moves.append([ vX, vY ])
+
+        return moves
+    
+    # récupère le move set d'une reine sous forme array[ [x,y]* ]
+    def queen_moveset(self, tile_size_unit, pieces_list):
+        moves_1 = self.bishop_moveset(tile_size_unit, pieces_list)
+        moves_2 = self.rook_moveset(tile_size_unit, pieces_list)
+        moves = moves_1 + moves_2
+        return moves
+    
+    # récupère le move set d'un roi sous forme array[ [x,y]* ]
+    def king_moveset(self, tile_size_unit, piece_list):
+        moves = []
+        
+        # white king and black king
+        if self.type == 5:
+            moves = [ [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1] ]
+
+        return moves
 
     # transforme un pion en une autre pièce
     def upgrade_pawn(self):
