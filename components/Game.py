@@ -94,6 +94,24 @@ class Game:
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 raise SystemExit
+            
+            # click souris
+            if event.type == pygame.MOUSEBUTTONDOWN:
+
+                # left click
+                if pygame.mouse.get_pressed()[0]:
+                    x, y = event.pos
+                    for piece in self.pieces:
+                        if piece.img.get_rect(topleft=(piece.coordinates[0], piece.coordinates[1])).collidepoint(x, y):
+                            print(piece.id)
+                            print(f'Mouse clicked at {x}, {y}')
+                            piece.selected = True
+                            print(piece.selected)
+ 
+
+                # right click
+                elif pygame.mouse.get_pressed()[2]:
+                    print("right click")
 
     # dessine le jeu
     def render(self):
@@ -101,7 +119,12 @@ class Game:
         self.display.fill(pygame.Color(255,255,255))                    # clear surface
         self.clock.tick(15)                                             # wait until next frame
 
+        # dessine le plateau et les pièces
         self.board.draw(self.display)
         for piece in self.pieces:
             piece.draw(self.display)
+
+            # si une pièce est selectionnée, place un curseur jaune sur la case
+            if piece.selected == True:
+                piece.draw_select_icon(self.display)
             

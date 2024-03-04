@@ -3,12 +3,12 @@ import pygame
 class Piece:
 
     def __init__(self, id, type, color, chess_coordinates, tile_size_unit) -> None:
-        self.id = id                                                    # str: uuid ?
-        self.type = type                                                # int: 0 pawn, 1 knight, 2 bishop, 3 rook, 4 queen, 5 king
-        self.color = color                                              # int: 0 blanc, 1 noir
-        self.coordinates = self.get_coordinates(chess_coordinates, tile_size_unit)      # tupple[int,int] : [x,y]
-        self.img = pygame.transform.scale(pygame.image.load(self.get_image()), (85,85))                  # method: load the correct img
-        print(self.coordinates)
+        self.id = id                # str: uuid ?
+        self.type = type            # int: 0 pawn, 1 knight, 2 bishop, 3 rook, 4 queen, 5 king
+        self.color = color          # int: 0 blanc, 1 noir
+        self.coordinates = self.get_coordinates(chess_coordinates, tile_size_unit)          # tupple[int,int] : [x,y]
+        self.img = pygame.transform.scale(pygame.image.load(self.get_image()), (85,85))     # method: load the correct img
+        self.selected = False       # bool: si la pièce est active
 
     # charge l'image qui correspond au type et à la couleur de la pièce
     def get_image(self):
@@ -118,6 +118,10 @@ class Piece:
     # dessine la pièce
     def draw(self, display):
         display.blit(self.img, self.coordinates)
+
+    # dessine un rectangle qui montre la sélection de la pièce
+    def draw_select_icon(self, display):
+        pygame.draw.rect(display, (255, 255, 0), (self.coordinates[0], self.coordinates[1], 100, 100), 4)
 
     # bouge la pièce à une destination
     def move(self):
