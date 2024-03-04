@@ -1,7 +1,8 @@
-import components.Game as Game
+from components.Game import Game
 
 class App:
 
     def __init__(self) -> None:
         self.game = Game()
-        self.game.game_start()
+        
+app = App()

@@ -1,4 +1,4 @@
-
+import pygame
 
 class Piece:
 
@@ -6,8 +6,12 @@ class Piece:
         self.id = "piece_num"   # str: uuid ?
         self.type = 0           # int: 0 pawn, 1 knight, 2 bishop, 3 rook, 4 queen, 5 king
         self.color = 0          # int: 0 blanc, 1 noir
-        self.coordinates = []   # array[int,int] : [x,y]
-        self.img = "str"
+        self.coordinates = ()   # tupple[int,int] : [x,y]
+        self.img = pygame.image.load("./assets/b_pawn.png")
+
+    # dessine la pièce
+    def draw(self, display):
+        display.blit(self.img, self.coordinates)
 
     # bouge la pièce à une destination
     def move(self):
