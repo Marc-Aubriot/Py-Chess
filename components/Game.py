@@ -23,9 +23,9 @@ class Game:
         self.display = pygame.display.set_mode((self.display_width,self.display_height))
 
         # game var
-        self.turn_count = 0                         # int: le nombre de tour
+        #self.turn_count = 0                         # int: le nombre de tour
         self.active_player = 0                      # int: player_id
-        self.active_piece = None                    # str: piece_id
+        self.active_piece_id = None                 # str: piece_id
 
         # starting game
         self.loop = self.main_loop()
@@ -35,9 +35,6 @@ class Game:
         while True:
             # player inputs
             self.inputs()
-
-            # do thing
-            self.logic()
 
             # render
             self.render()
@@ -51,58 +48,15 @@ class Game:
             # click souris
             if event.type == pygame.MOUSEBUTTONDOWN:
 
+                x, y = event.pos
+
                 # left click
                 if pygame.mouse.get_pressed()[0]:
-                    x, y = event.pos
-
-                    # si une piece est active vérifie que la case est un move possible
-                    if self.active_piece != None:
-                        temp_piece = self.get_piece_by_id(self.active_piece)
-   
-                        # check si le move est possible
-                        if temp_piece.check_move(self.pieces, (x, y)) == True:
-                            #chess_coordinates = self.get_chess_coordinates((x, y))
-
-                            # update les coordonnées de la pièce et de la pièce dans la liste
-                            coordinates = self.get_xy_coordinates((x, y))
-                            temp_piece.move(coordinates)
-                            self.pieces[temp_piece.piece_list_index].coordinates = (coordinates[0]*self.tile_size , coordinates[1]*self.tile_size)
-                            print(coordinates)
-                            print(self.pieces[temp_piece.piece_list_index].coordinates)
-
-                    # vérifie si une pièce est sélectionnée en regardant les coordonnées des pièces et celles du click
-                    for piece in self.pieces:
-                        piece_body = piece.img.get_rect(topleft=(piece.coordinates[0], piece.coordinates[1]))
-
-                        # collision affiche un curseur de sélection
-                        if piece_body.collidepoint(x, y) and piece.selected == False and self.active_piece == None:
-
-                            # si le joueur actif choisit une pièce adverse on ne fait rien
-                            if self.active_player != piece.color:
-                                return
-                            piece.selected = True
-                            self.active_piece = piece.id
-
-                        # collision mais la pièce est déjà sélectionnée
-                        elif piece_body.collidepoint(x, y) and piece.selected == True and self.active_piece != None:
-
-                            # enlève le curseur de sélection
-                            piece.selected = False
-                            self.active_piece = None
-
+                    self.check_left_click((x, y))
 
                 # right click
                 elif pygame.mouse.get_pressed()[2]:
-                    
-                    # désélectionne la pièce actuellement sélectionnée
-                    if self.active_piece != None:
-                        temp_piece = self.get_piece_by_id(self.active_piece)
-                        temp_piece.selected = False
-                        self.active_piece = None
-
-    # logic
-    def logic(self):
-        pass
+                    self.check_right_click((x, y))
 
     # dessine le jeu
     def render(self):
@@ -110,14 +64,51 @@ class Game:
         self.display.fill(pygame.Color(255,255,255))                    # clear surface
         self.clock.tick(15)                                             # wait until next frame
 
-        # dessine le plateau et les pièces
+        # dessine le plateau
         self.board.draw(self.display)
 
+        # dessine les pièces
         for piece in self.board.pieces_list:
             piece.draw(self.display)
 
-            # si une pièce est selectionnée, place un curseur jaune sur la case
-            if piece.selected == True:
-                piece.draw_select_icon(self.display)
-                piece.draw_moves(self.display, self.pieces)
-            
+            # si une pièce est selectionnée
+            if piece.id == self.active_piece_id:
+
+                # place un curseur jaune sur la pièce
+                self.board.draw_select_icon(self.display, piece)
+
+                # montre les moves possibles en hightlightant les cases en vert
+                self.board.draw_moves(self.display, piece, self.board.pieces_list)
+     
+    # check input left click => sélectionne une pièce ou déplace une pièce active
+    def check_left_click(self, event):
+        x, y = event[0], event[1]
+        piece = self.board.get_piece((x, y))
+
+        # sélectionne la pièce
+        if piece != None and self.active_piece_id == None:
+            self.active_piece_id = piece.id
+
+        # déselectionne la pièce
+        elif piece != None and self.active_piece_id == piece.id:
+            self.active_piece_id = None
+
+        # case vide sans sélection
+        elif piece == None and self.active_piece_id == None:
+            return
+        
+        # prise de pièce
+        elif piece != None and self.active_piece_id != None:
+            if piece.color != self.active_player:
+                print("prise de piece ?")
+            elif piece.color == self.active_player:
+                print("piece de la même couleur")
+
+        # déplacement de pièce
+        elif piece == None and self.active_piece_id != None:
+            print("déplacement ?")
+
+    # check input right click => si une pièce est sélectionnée, l'enlève de la pièce active
+    def check_right_click(self, event):
+        if self.active_piece_id != None:
+            self.active_piece_id = None

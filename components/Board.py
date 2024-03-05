@@ -139,6 +139,34 @@ class Board:
         ]
         return pieces
 
-    # void: affiche le plateau et les pièces dans une fenêtre de jeu
+    # dessine le plateau
     def draw(self, display):
         display.blit(self.img, (0,0))
+
+    # retourne la piece dans la case de l'event
+    def get_piece(self, event):
+        x, y = event[0], event[1]
+
+        # cherche les coordonnées du click dans les pièces
+        for piece in self.pieces_list:
+
+            # créé un body à partir de l'image blit pour détecté la collision
+            piece_body = piece.img.get_rect(topleft=(piece.coordinates[0], piece.coordinates[1]))
+
+            # x,y dans le body de la pièce => collision => sélectionne la pièce
+            if piece_body.collidepoint(x, y):
+                return piece
+    
+    # dessine un rectangle qui montre la sélection de la pièce
+    def draw_select_icon(self, display, piece):
+        pygame.draw.rect(display, (255, 255, 0), (piece.coordinates[0], piece.coordinates[1], piece.size_unit, piece.size_unit), 4)
+
+    # dessine les mouvements de la pièce sur le plateau
+    def draw_moves(self, display, piece, pieces_list):
+        destinations = piece.get_moveset(pieces_list)
+
+        # affiche les destinations possible récupérées
+        for dest in destinations:
+            new_x = piece.coordinates[0]+dest[0]*piece.size_unit
+            new_y = piece.coordinates[1]+dest[1]*piece.size_unit
+            pygame.draw.rect(display, (0, 255, 0), (new_x, new_y, piece.size_unit, piece.size_unit), 4)

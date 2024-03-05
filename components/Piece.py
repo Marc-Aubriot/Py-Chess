@@ -13,12 +13,11 @@ class Piece:
         self.xy =   None
         self.tile_name = None
         self.img = pygame.transform.scale(pygame.image.load(self.get_image()), (85,85))     # method: load the correct img
-        self.selected = False       # bool: si la pièce est active
         self.move_count = 0         # int: compte les moves 
         self.detect_colision = True     # bool: détecte la colision entre les pièces
         #self.body = pygame.Rect(self.coordinates[0], self.coordinates[1], tile_size_unit, tile_size_unit)   # pygame object
-        #self.helper = HelperModule(f"pawn_{id}_helper")
-        self.helper = HelperModule("test")
+        self.helper = HelperModule(f"pawn_{id}_helper")
+        #self.helper = HelperModule("test")
 
         self.update_coordinate(chess_tile_name)
 
@@ -30,7 +29,7 @@ class Piece:
         xy = self.helper.tile_name_xy_dictionary()
         self.xy = xy[chess_tile_name]
 
-    # string: charge l'image qui correspond au type et à la couleur de la pièce
+    # charge l'image qui correspond au type et à la couleur de la pièce
     def get_image(self):
         img = ""
         if self.color == 0:
@@ -56,25 +55,11 @@ class Piece:
 
         return "./assets/"+img+".png"
 
-    # void: dessine la pièce
+    # dessine la pièce
     def draw(self, display):
         display.blit(self.img, self.coordinates)
 
-    # void: dessine un rectangle qui montre la sélection de la pièce
-    def draw_select_icon(self, display):
-        pygame.draw.rect(display, (255, 255, 0), (self.coordinates[0], self.coordinates[1], self.size_unit, self.size_unit), 4)
-
-    # void: dessine les mouvements de la pièce sur le plateau
-    def draw_moves(self, display, pieces_list):
-        destinations = self.get_moves(pieces_list)
-
-        # affiche les destinations possible récupérées
-        for dest in destinations:
-            new_x = self.coordinates[0]+dest[0]*self.size_unit
-            new_y = self.coordinates[1]+dest[1]*self.size_unit
-            pygame.draw.rect(display, (0, 255, 0), (new_x, new_y, self.size_unit, self.size_unit), 4)
-
-    # boolean: check si la pièce peut bouger à cette destination
+    # check si la pièce peut bouger à cette destination
     def check_move(self, pieces_list, coordinates):
 
         destinations = self.get_moves(pieces_list)
@@ -89,19 +74,19 @@ class Piece:
         
         return False
 
-    # void: bouge la pièce à sa destination
+    # bouge la pièce à sa destination
     def move(self, coordinates):
         coordinates = self.translate_xy_to_piece_coordinates(coordinates)
         self.coordinates = coordinates
 
-    # tupple( x:int, y:int): coordonnées de la pièce sur display pygame
+    # coordonnées de la pièce sur display pygame
     def translate_xy_to_piece_coordinates(self, xy_coordinates):
         dest_x = xy_coordinates[0]*self.size_unit
         dest_y = xy_coordinates[1]*self.size_unit
         return (dest_x, dest_y)
     
-    # array[ array[ x:int, y:int]* ]: vérifie les possibilités de mouvements de la pièce
-    def get_moves(self, pieces_list):
+    # vérifie les possibilités de mouvements de la pièce
+    def get_moveset(self, pieces_list):
         moves = []
 
         # pawn piece
@@ -130,7 +115,7 @@ class Piece:
         
         return moves
         
-    # boolean: check si une pièce se trouve aux coordonnées
+    # check si une pièce se trouve aux coordonnées
     def check_piece_at_coordinates(self, coordinates, pieces_list):
         for piece in pieces_list:
             if piece.coordinates == (coordinates[0], coordinates[1]):  
@@ -138,7 +123,7 @@ class Piece:
                     print("capture possible")
             return True
 
-    # array[ array[ x:int, y:int]* ]: récupère le move set d'un pion
+    # récupère le move set d'un pion
     def pawn_moveset(self, pieces_list):
         # white pawn first move
         if self.type == 0 and self.color == 0 and self.move_count == 0:
@@ -155,11 +140,11 @@ class Piece:
         
         return moves
     
-    # array[ array[ x:int, y:int]* ]: récupère le move set d'un cavalier
+    # récupère le move set d'un cavalier
     def knight_moveset(self, pieces_list):
         return [ [-1, -2], [1, -2], [-1, 2], [1, 2], [-2, -1], [-2, 1], [2, -1], [2, 1] ]
     
-    # array[ array[ x:int, y:int]* ]: récupère le move set d'un fou
+    # récupère le move set d'un fou
     def bishop_moveset(self, pieces_list):
         moves = []
 
@@ -200,7 +185,7 @@ class Piece:
 
         return moves
 
-    # array[ array[ x:int, y:int]* ]: récupère le move set d'une tour
+    # récupère le move set d'une tour
     def rook_moveset(self, pieces_list):
         moves = []
 
@@ -241,14 +226,14 @@ class Piece:
 
         return moves
     
-    # array[ array[ x:int, y:int]* ]: récupère le move set d'une reine
+    # récupère le move set d'une reine
     def queen_moveset(self, pieces_list):
         moves_1 = self.bishop_moveset(pieces_list)
         moves_2 = self.rook_moveset(pieces_list)
         moves = moves_1 + moves_2
         return moves
     
-    # array[ array[ x:int, y:int]* ]: récupère le move set d'un roi
+    # récupère le move set d'un roi
     def king_moveset(self, piece_list):
         moves = []
         
