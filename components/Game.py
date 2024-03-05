@@ -3,6 +3,7 @@ from pygame import  *
 from components.Board import Board
 from components.Player import Player
 from components.Piece import Piece
+import math
 
 class Game:
 
@@ -12,7 +13,7 @@ class Game:
         self.width = 800
         self.height = 800
         self.tile_size = self.width/8
-        self.board = Board(self.width, self.height)                # object
+        self.board = Board(self.width, self.height, self.tile_size)                # object
         self.pieces = self.populate_board()         # array[object*]: contenant les 32 pièces
         #self.players = [Player(0), Player(1)]       # array[object*]: contenant les 2 joueurs
         self.turn_count = 0                         # int: le nombre de tour
@@ -103,19 +104,38 @@ class Game:
                 if pygame.mouse.get_pressed()[0]:
                     x, y = event.pos
 
+                    # si une piece est active vérifie que la case est un move possible
+                    if self.active_piece != None:
+                        temp_piece = self.get_piece_by_id(self.active_piece)
+   
+                        # check si le move est possible
+                        if temp_piece.check_move(self.pieces, (x, y)) == True:
+                            #chess_coordinates = self.get_chess_coordinates((x, y))
+                            coordinates = self.get_xy_coordinates((x, y))
+                            temp_piece.move(coordinates)
+                        else:
+                            print("move incorrect")
+
                     # vérifie si une pièce est sélectionnée en regardant les coordonnées des pièces et celles du click
                     for piece in self.pieces:
                         piece_body = piece.img.get_rect(topleft=(piece.coordinates[0], piece.coordinates[1]))
 
-                        # contact du click et de Surface: affiche un curseur de sélection
+                        # collision affiche un curseur de sélection
                         if piece_body.collidepoint(x, y) and piece.selected == False and self.active_piece == None:
+
+                            # si le joueur actif choisit une pièce adverse on ne fait rien
+                            if self.active_player != piece.color:
+                                return
                             piece.selected = True
                             self.active_piece = piece.id
 
-                        # contact du click et de Surface mais la pièce est déjà sélectionnée: enlève le curseur de sélection
+                        # collision mais la pièce est déjà sélectionnée
                         elif piece_body.collidepoint(x, y) and piece.selected == True and self.active_piece != None:
+
+                            # enlève le curseur de sélection
                             piece.selected = False
                             self.active_piece = None
+
 
                 # right click
                 elif pygame.mouse.get_pressed()[2]:
@@ -126,7 +146,7 @@ class Game:
                         temp_piece.selected = False
                         self.active_piece = None
 
-    # récupère la pièce grâce à son id
+    # Piece object: récupère la pièce grâce à son id
     def get_piece_by_id(self, piece_id):
         for piece in self.pieces:
             if piece_id != None and piece.id == piece_id:
@@ -135,7 +155,21 @@ class Game:
                 return piece
  
         print("no Piece found")
-        
+
+    # String: récupère les coordonnées de la case du jeu d'échec "A1" "B1" etc
+    def get_chess_coordinates(self, coordinates):
+        xy_coordinates = self.get_xy_coordinates(coordinates)
+        for key, value in self.board.tiles_xy.items():
+            if value == xy_coordinates:
+                return key
+        return "key not found"
+
+    # tupple( x:int, y:int): récupère les coordonnées de la case 
+    def get_xy_coordinates(self, coordinates):
+        x = math.floor(coordinates[0]/self.tile_size)
+        y = math.floor(coordinates[1]/self.tile_size)
+        return (x, y)
+
     # dessine le jeu
     def render(self):
         pygame.display.flip()                                           # Refresh on-screen display
@@ -149,6 +183,6 @@ class Game:
 
             # si une pièce est selectionnée, place un curseur jaune sur la case
             if piece.selected == True:
-                piece.draw_select_icon(self.display, self.tile_size)
-                piece.draw_moves(self.display, self.tile_size, self.pieces)
+                piece.draw_select_icon(self.display)
+                piece.draw_moves(self.display, self.pieces)
             
