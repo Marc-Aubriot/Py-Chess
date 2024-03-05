@@ -2,11 +2,12 @@ import pygame
 
 class Piece:
 
-    def __init__(self, id, type, color, chess_coordinates, tile_size_unit) -> None:
+    def __init__(self, id, type, color, chess_coordinates, tile_size_unit, pieces_list_index) -> None:
         self.id = id                # str: uuid ?
         self.type = type            # int: 0 pawn, 1 knight, 2 bishop, 3 rook, 4 queen, 5 king
         self.color = color          # int: 0 blanc, 1 noir
         self.size_unit = tile_size_unit # int: la taille en px du carré représentant l'objet
+        self.piece_list_index = pieces_list_index   # int:  son index dans la liste des pieces de Game
         self.coordinates = self.get_coordinates(chess_coordinates)          # tupple[int,int] : [x,y]
         self.img = pygame.transform.scale(pygame.image.load(self.get_image()), (85,85))     # method: load the correct img
         self.selected = False       # bool: si la pièce est active
@@ -157,7 +158,7 @@ class Piece:
         coordinates = self.translate_xy_to_piece_coordinates(coordinates)
         self.coordinates = coordinates
 
-    # tuplle( x:int, y:int): coordonnées de la pièce sur display pygame
+    # tupple( x:int, y:int): coordonnées de la pièce sur display pygame
     def translate_xy_to_piece_coordinates(self, xy_coordinates):
         dest_x = xy_coordinates[0]*self.size_unit
         dest_y = xy_coordinates[1]*self.size_unit
@@ -320,7 +321,4 @@ class Piece:
             moves = [ [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1] ]
 
         return moves
-
-    # transforme un pion en une autre pièce
-    def upgrade_pawn(self):
         pass
