@@ -86,7 +86,7 @@ class Game:
         piece = self.board.get_piece((x, y))
 
         # sélectionne la pièce
-        if piece != None and self.active_piece_id == None:
+        if piece != None and self.active_piece_id == None and piece.color == self.active_player:
             self.active_piece_id = piece.id
 
         # déselectionne la pièce
@@ -106,9 +106,25 @@ class Game:
 
         # déplacement de pièce
         elif piece == None and self.active_piece_id != None:
-            print("déplacement ?")
+            
+            # récupère la piece active
+            active_piece = self.helper.get_piece_by_id(self.active_piece_id, self.board.pieces_list)
+
+            # check si la piece peut bouger à ces coordonnées
+            new_destination = self.helper.get_xy((x, y), self.tile_size)
+            tile_name = self.helper.get_tile_name((x, y), self.tile_size)
+            if self.board.is_move_valid(active_piece, new_destination) == True:
+                self.board.move_piece(active_piece, tile_name)
+                self.board.update_board()
+                self.next_turn()
+            else:
+                print("déplacement non permis")
 
     # check input right click => si une pièce est sélectionnée, l'enlève de la pièce active
     def check_right_click(self, event):
         if self.active_piece_id != None:
             self.active_piece_id = None
+
+    # switch le joueur
+    def next_turn(self):
+        print("next turn")

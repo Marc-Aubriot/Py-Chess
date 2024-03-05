@@ -170,3 +170,29 @@ class Board:
             new_x = piece.coordinates[0]+dest[0]*piece.size_unit
             new_y = piece.coordinates[1]+dest[1]*piece.size_unit
             pygame.draw.rect(display, (0, 255, 0), (new_x, new_y, piece.size_unit, piece.size_unit), 4)
+
+    # vérifie si le move est valide
+    def is_move_valid(self, piece, destination):
+
+        # récupère le moveset de la pièce et transforme les coordonnées (0:800) en xy (0:7)
+        piece_moveset = piece.get_moveset(self.pieces_list)
+        new_destination = (destination[0]*self.tile_size, destination[1]*self.tile_size)
+
+        # affiche les tiles possibles et vérifie que les coordonnées de destinations sont dans les possibilités
+        for tile in piece_moveset:
+            new_x = piece.coordinates[0]+tile[0]*piece.size_unit
+            new_y = piece.coordinates[1]+tile[1]*piece.size_unit
+
+            # si destination = possibilité => le move est possible
+            if new_destination[0] == new_x and new_destination[1] == new_y:
+                return True
+
+        return False
+
+    # bouge la piece à destination
+    def move_piece(self, piece, chess_tile_name):
+        piece.update_coordinate(chess_tile_name)
+
+    # update le plateau
+    def update_board(self):
+        print("update board")

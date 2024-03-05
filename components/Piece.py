@@ -60,30 +60,30 @@ class Piece:
         display.blit(self.img, self.coordinates)
 
     # check si la pièce peut bouger à cette destination
-    def check_move(self, pieces_list, coordinates):
-
-        destinations = self.get_moves(pieces_list)
-
-        # pour chaque case de destination on vérifie si le click est dans les coordonnées
-        for dest in destinations:
-            dest_x = self.coordinates[0]+dest[0]*self.size_unit
-            dest_y = self.coordinates[1]+dest[1]*self.size_unit
-
-            if coordinates[1] >= dest_y and coordinates[1] <=  dest_y + self.size_unit and coordinates[0] >= dest_x and coordinates[0] <= dest_x + self.size_unit:
-                return True
-        
-        return False
+    #def check_move(self, pieces_list, coordinates):
+    #
+    #    destinations = self.get_moves(pieces_list)
+    #
+    #    # pour chaque case de destination on vérifie si le click est dans les coordonnées
+    #    for dest in destinations:
+    #        dest_x = self.coordinates[0]+dest[0]*self.size_unit
+    #        dest_y = self.coordinates[1]+dest[1]*self.size_unit
+    #
+    #        if coordinates[1] >= dest_y and coordinates[1] <=  dest_y + self.size_unit and coordinates[0] >= dest_x and coordinates[0] <= dest_x + self.size_unit:
+    #            return True
+    #    
+    #    return False
 
     # bouge la pièce à sa destination
-    def move(self, coordinates):
-        coordinates = self.translate_xy_to_piece_coordinates(coordinates)
-        self.coordinates = coordinates
+    #def move(self, coordinates):
+    #    coordinates = self.translate_xy_to_piece_coordinates(coordinates)
+    #    self.coordinates = coordinates
 
     # coordonnées de la pièce sur display pygame
-    def translate_xy_to_piece_coordinates(self, xy_coordinates):
-        dest_x = xy_coordinates[0]*self.size_unit
-        dest_y = xy_coordinates[1]*self.size_unit
-        return (dest_x, dest_y)
+    #def translate_xy_to_piece_coordinates(self, xy_coordinates):
+    #    dest_x = xy_coordinates[0]*self.size_unit
+    #    dest_y = xy_coordinates[1]*self.size_unit
+    #    return (dest_x, dest_y)
     
     # vérifie les possibilités de mouvements de la pièce
     def get_moveset(self, pieces_list):
@@ -116,12 +116,12 @@ class Piece:
         return moves
         
     # check si une pièce se trouve aux coordonnées
-    def check_piece_at_coordinates(self, coordinates, pieces_list):
-        for piece in pieces_list:
-            if piece.coordinates == (coordinates[0], coordinates[1]):  
-                if piece.color != self.color:
-                    print("capture possible")
-            return True
+    #def check_piece_at_coordinates(self, coordinates, pieces_list):
+    #    for piece in pieces_list:
+    #        if piece.coordinates == (coordinates[0], coordinates[1]):  
+    #            if piece.color != self.color:
+    #                print("capture possible")
+    #        return True
 
     # récupère le move set d'un pion
     def pawn_moveset(self, pieces_list):
@@ -167,11 +167,11 @@ class Piece:
                     y = y + vector[i][1]
 
                     # check si la case est occupée par une pièce
-                    new_x = x * self.size_unit
-                    new_y = y * self.size_unit
-                    if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
-                            loop = False
-                            continue
+                    #new_x = x * self.size_unit
+                    #new_y = y * self.size_unit
+                    #if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                    #        loop = False
+                    #        continue
 
                     # quand x ou y arrive au bord du plateau stop cette loop
                     if x < 0 or y < 0 or x >= 8 or y >= 8:
@@ -208,11 +208,11 @@ class Piece:
                     y = y + vector[i][1]
 
                     # check si la case est occupée par une pièce
-                    new_x = x * self.size_unit
-                    new_y = y * self.size_unit
-                    if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
-                            loop = False
-                            continue
+                    #new_x = x * self.size_unit
+                    #new_y = y * self.size_unit
+                    #if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                    #        loop = False
+                    #        continue
 
                     # quand x ou y arrive au bord du plateau stop cette loop
                     if x < 0 or y < 0 or x >= 8 or y >= 8:

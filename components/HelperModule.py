@@ -15,11 +15,11 @@ class HelperModule:
         return None
     
     # récupère les coordonnées de la case du jeu d'échec "A1" "B1" etc
-    # INPUT =   STRING: id, ARRAY[OBJECT*]: piece list
-    # OUTPUT =  OBJECT: Piece
-    def get_tile_name(self, coordinates):
-        xy_coordinates = self.get_xy(coordinates)
-        for key, value in self.tile_name_xy_dictionary():
+    # INPUT =   TUPPLE(INT,INT): coordonnées en px à partir d'un event click, INT: taille d'une unité en px
+    # OUTPUT =  STRING: tile_name
+    def get_tile_name(self, coordinates, tile_size):
+        xy_coordinates = self.get_xy(coordinates, tile_size)
+        for key, value in self.tile_name_xy_dictionary().items():
             if value == xy_coordinates:
                 return key
         return None
