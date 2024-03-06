@@ -16,6 +16,8 @@ class Piece:
         self.move_count = 0        # int: compte les moves 
         #self.detect_colision = True     # bool: détecte la colision entre les pièces
         self.helper = HelperModule(f"pawn_{id}_helper")
+        self.piece_on_table = True
+        self.piece_is_checked = False
 
         self.update_coordinate(chess_tile_name)
 
@@ -55,7 +57,8 @@ class Piece:
 
     # dessine la pièce
     def draw(self, display):
-        display.blit(self.img, self.coordinates)
+        if self.piece_on_table == True:
+            display.blit(self.img, self.coordinates)
 
     # vérifie les possibilités de mouvements de la pièce
     def get_moveset(self, pieces_list):

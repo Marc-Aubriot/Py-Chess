@@ -14,6 +14,17 @@ class HelperModule:
                 return piece
         return None
     
+    # récupère la Pièce dans une liste de Pièce grâce à son ID
+    # INPUT =   STRING: id, ARRAY[OBJECT*]: piece list
+    # OUTPUT =  OBJECT: Piece
+    def get_piece_index_by_id(self, piece_id, piece_list):
+        index = 0
+        for piece in piece_list:
+            if piece.id == piece_id:
+                return index
+            index += 1
+        return None
+    
     # récupère les coordonnées de la case du jeu d'échec "A1" "B1" etc
     # INPUT =   TUPPLE(INT,INT): coordonnées en px à partir d'un event click, INT: taille d'une unité en px
     # OUTPUT =  STRING: tile_name

@@ -79,6 +79,10 @@ class Game:
 
                 # montre les moves possibles en hightlightant les cases en vert
                 self.board.draw_moves(self.display, piece, self.board.pieces_list)
+            
+            # si le roi est en échec
+            if piece.piece_is_checked == True:
+                self.board.draw_king_is_checked(self.display, piece)
      
     # check input left click => sélectionne une pièce ou déplace une pièce active
     def check_left_click(self, event):
@@ -100,19 +104,36 @@ class Game:
         # prise de pièce
         elif piece != None and self.active_piece_id != None:
             if piece.color != self.active_player:
-                print("prise de piece ?")
+
+                # récupère la piece active et la pièce cible
+                active_piece = self.helper.get_piece_by_id(self.active_piece_id, self.board.pieces_list)
+                enemy_piece = self.board.get_piece((x, y))
+
+                # check si la piece peut bouger à ces coordonnées
+                new_destination = self.helper.get_xy((x, y), self.tile_size)
+                tile_name = self.helper.get_tile_name((x, y), self.tile_size)
+
+                if self.board.is_move_valid(active_piece, new_destination) == True:
+                    self.board.move_piece(active_piece, tile_name)
+                    self.board.take_piece(enemy_piece)
+                    self.next_turn()
+                else:
+                    print("déplacement non permis")
+                    
+
             elif piece.color == self.active_player:
                 print("piece de la même couleur")
 
         # déplacement de pièce
         elif piece == None and self.active_piece_id != None:
-            
+
             # récupère la piece active
             active_piece = self.helper.get_piece_by_id(self.active_piece_id, self.board.pieces_list)
 
             # check si la piece peut bouger à ces coordonnées
             new_destination = self.helper.get_xy((x, y), self.tile_size)
             tile_name = self.helper.get_tile_name((x, y), self.tile_size)
+
             if self.board.is_move_valid(active_piece, new_destination) == True:
                 self.board.move_piece(active_piece, tile_name)
                 self.next_turn()
@@ -136,4 +157,18 @@ class Game:
         # update les variables
         self.active_piece_id = None
         self.turn_count += 1
-        
+
+        # check si il y'a échec
+        white_king = self.helper.get_piece_by_id("white_king_1", self.board.pieces_list)
+        black_king = self.helper.get_piece_by_id("black_king_1", self.board.pieces_list)
+
+        if self.board.is_king_checked() == "white_king_check" and white_king.piece_is_checked == False:
+            white_king.piece_is_checked = True
+        elif white_king.piece_is_checked == True and self.board.is_king_checked() == "no":
+            white_king.piece_is_checked = False
+
+        if self.board.is_king_checked() == "black_king_check" and black_king.piece_is_checked == False:
+            black_king.piece_is_checked = True
+        elif black_king.piece_is_checked == True and self.board.is_king_checked() == "no":
+            black_king.piece_is_checked = False
+    

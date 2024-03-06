@@ -1,92 +1,15 @@
 import pygame
 from components.Piece import Piece
+from components.HelperModule import HelperModule
 
 class Board:
 
     def __init__(self, board_id, board_width, board_height, tile_size_unit) -> None:
         self.id = board_id                          # str: uuid?
         self.tile_size = tile_size_unit             # int: px
-        #self.board = self.board_content()           # hashmap: key:STRING value:STRING
         self.pieces_list = self.populate_board()    # array[Object*]: contient les Pièces
         self.img = pygame.transform.scale(pygame.image.load("./assets/chess_board_1.png"), (board_width,board_height))
-
-    # dictionary(key: str, value: str ): de chaque case du plateau et son contenu
-    def board_content(self):
-        hashmap = {
-            # Y0
-            "A8": "empty",
-            "B8": "empty",
-            "C8": "empty",
-            "D8": "empty",
-            "E8": "empty",
-            "F8": "empty",
-            "G8": "empty",
-            "H8": "empty",
-            # Y1
-            "A7": "empty",
-            "B7": "empty",
-            "C7": "empty",
-            "D7": "empty",
-            "E7": "empty",
-            "F7": "empty",
-            "G7": "empty",
-            "H7": "empty",
-            # Y2
-            "A6": "empty",
-            "B6": "empty",
-            "C6": "empty",
-            "D6": "empty",
-            "E6": "empty",
-            "F6": "empty",
-            "G6": "empty",
-            "H6": "empty",
-            # Y3
-            "A5": "empty",
-            "B5": "empty",
-            "C5": "empty",
-            "D5": "empty",
-            "E5": "empty",
-            "F5": "empty",
-            "G5": "empty",
-            "H5": "empty",
-            # Y4
-            "A4": "empty",
-            "B4": "empty",
-            "C4": "empty",
-            "D4": "empty",
-            "E4": "empty",
-            "F4": "empty",
-            "G4": "empty",
-            "H4": "empty",
-            # Y5
-            "A3": "empty",
-            "B3": "empty",
-            "C3": "empty",
-            "D3": "empty",
-            "E3": "empty",
-            "F3": "empty",
-            "G3": "empty",
-            "H3": "empty",
-            # Y6
-            "A2": "empty",
-            "B2": "empty",
-            "C2": "empty",
-            "D2": "empty",
-            "E2": "empty",
-            "F2": "empty",
-            "G2": "empty",
-            "H2": "empty",
-            # Y7
-            "A1": "empty",
-            "B1": "empty",
-            "C1": "empty",
-            "D1": "empty",
-            "E1": "empty",
-            "F1": "empty",
-            "G1": "empty",
-            "H1": "empty",
-        }
-        return hashmap
+        self.helper = HelperModule(f"board_helper")
 
     # place les pièces sur le plateau de jeu
     def populate_board(self):
@@ -161,6 +84,11 @@ class Board:
     def draw_select_icon(self, display, piece):
         pygame.draw.rect(display, (255, 255, 0), (piece.coordinates[0], piece.coordinates[1], piece.size_unit, piece.size_unit), 4)
 
+    # dessine un rectangle autour du roi pour indiquer qu'il est en échec
+    def draw_king_is_checked(self, display, king):
+        #king = self.helper.get_piece_by_id(king_id, self.pieces_list)
+        pygame.draw.rect(display, (255, 0, 0), (king.coordinates[0], king.coordinates[1], king.size_unit, king.size_unit), 4)
+
     # dessine les mouvements de la pièce sur le plateau
     def draw_moves(self, display, piece, pieces_list):
         destinations = piece.get_moveset(pieces_list)
@@ -197,4 +125,45 @@ class Board:
     def move_piece(self, piece, chess_tile_name):
         piece.update_coordinate(chess_tile_name)
         piece.move_count += 1
-        print(piece.move_count)
+
+    # le joueur prend la pièce cible, update la liste des pièces en jeu
+    def take_piece(self, piece_taken):
+
+        # récupère l'index de la pièce à supprimer de la liste
+        piece_index = self.helper.get_piece_index_by_id(piece_taken.id, self.pieces_list)
+        self.pieces_list.pop(piece_index)
+
+        # supprime les coordonnées de la pièce et empêche la méthode draw
+        piece_taken.xy = None
+        piece_taken.coordinates = None
+        piece_taken.tile_name = None
+        piece_taken.piece_on_table = False
+
+    # check si le roi est en échec
+    def is_king_checked(self):
+
+        # récupère les coordonnées des 2 rois
+        white_king = self.helper.get_piece_by_id("white_king_1", self.pieces_list)
+        black_king = self.helper.get_piece_by_id("black_king_1", self.pieces_list)
+        white_king_position = white_king.xy
+        black_king_position = black_king.xy
+        print(f"wk pos: {white_king_position}")
+        print(f"bk pos: {black_king_position}")
+        # check chaque piece si elle peut bouger sur le roi adverse
+        for piece in self.pieces_list:
+            destinations = piece.get_moveset(self.pieces_list)
+
+            for dest in destinations:
+                x = piece.xy[0] + dest[0]
+                y = piece.xy[1] + dest[1]
+
+                if piece.type == 4 and piece.color == 0:
+                    print(f"queen dest: [{x},{y}]")
+                if piece.color == 1 and white_king_position[0] == x and white_king_position[1] == y:
+                    print("white king checked")
+                    return "white_king_check"
+                elif piece.color == 0 and black_king_position[0] == x and black_king_position[1] == y:
+                    print("black king is checked")
+                    return "black_king_check"
+                
+        return "no"
