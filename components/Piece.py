@@ -13,11 +13,9 @@ class Piece:
         self.xy =   None
         self.tile_name = None
         self.img = pygame.transform.scale(pygame.image.load(self.get_image()), (85,85))     # method: load the correct img
-        self.move_count = 0         # int: compte les moves 
-        self.detect_colision = True     # bool: détecte la colision entre les pièces
-        #self.body = pygame.Rect(self.coordinates[0], self.coordinates[1], tile_size_unit, tile_size_unit)   # pygame object
+        self.move_count = 0        # int: compte les moves 
+        #self.detect_colision = True     # bool: détecte la colision entre les pièces
         self.helper = HelperModule(f"pawn_{id}_helper")
-        #self.helper = HelperModule("test")
 
         self.update_coordinate(chess_tile_name)
 
@@ -59,32 +57,6 @@ class Piece:
     def draw(self, display):
         display.blit(self.img, self.coordinates)
 
-    # check si la pièce peut bouger à cette destination
-    #def check_move(self, pieces_list, coordinates):
-    #
-    #    destinations = self.get_moves(pieces_list)
-    #
-    #    # pour chaque case de destination on vérifie si le click est dans les coordonnées
-    #    for dest in destinations:
-    #        dest_x = self.coordinates[0]+dest[0]*self.size_unit
-    #        dest_y = self.coordinates[1]+dest[1]*self.size_unit
-    #
-    #        if coordinates[1] >= dest_y and coordinates[1] <=  dest_y + self.size_unit and coordinates[0] >= dest_x and coordinates[0] <= dest_x + self.size_unit:
-    #            return True
-    #    
-    #    return False
-
-    # bouge la pièce à sa destination
-    #def move(self, coordinates):
-    #    coordinates = self.translate_xy_to_piece_coordinates(coordinates)
-    #    self.coordinates = coordinates
-
-    # coordonnées de la pièce sur display pygame
-    #def translate_xy_to_piece_coordinates(self, xy_coordinates):
-    #    dest_x = xy_coordinates[0]*self.size_unit
-    #    dest_y = xy_coordinates[1]*self.size_unit
-    #    return (dest_x, dest_y)
-    
     # vérifie les possibilités de mouvements de la pièce
     def get_moveset(self, pieces_list):
         moves = []
@@ -116,33 +88,77 @@ class Piece:
         return moves
         
     # check si une pièce se trouve aux coordonnées
-    #def check_piece_at_coordinates(self, coordinates, pieces_list):
-    #    for piece in pieces_list:
-    #        if piece.coordinates == (coordinates[0], coordinates[1]):  
-    #            if piece.color != self.color:
-    #                print("capture possible")
-    #        return True
+    def check_piece_at_coordinates(self, coordinates, pieces_list):
+        for piece in pieces_list:
+            if piece.coordinates == (coordinates[0], coordinates[1]):  
+                return True
 
     # récupère le move set d'un pion
     def pawn_moveset(self, pieces_list):
-        # white pawn first move
-        if self.type == 0 and self.color == 0 and self.move_count == 0:
-            moves = [ [0,-1], [0,-2] ]
-        # white pawn
-        elif self.type == 0 and self.color == 0:
-            moves = [ [0,-1] ]
-        # black pawn first move
-        elif self.type == 0 and self.color == 1 and self.move_count == 0:
-            moves = [ [0,1], [0,2] ]
-        # black pawn
-        elif self.type == 0 and self.color == 1:
-            moves = [ [0,1] ]
+        moves = []
+
+        # pawn only
+        if self.type != 0:
+            return
         
+        # pawn first move
+        if self.move_count == 0:
+            if self.color == 0:
+                moves = [ [0,-1], [0,-2] ]
+                return moves
+            else :
+                moves = [ [0,1], [0,2] ]
+                return moves
+
+        # pawn other moves
+        else:
+            if self.color == 0:
+                vectors = [ [0,-1] ]
+            else :
+                vectors = [ [0,1] ]
+
+            x = self.xy[0] + vectors[0][0]
+            y = self.xy[1] + vectors[0][1]
+
+            # check si la case est occupée par une pièce, sinon append le move
+            new_x = x * self.size_unit
+            new_y = y * self.size_unit
+
+            if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) != True:
+                moves.append([ vectors[0][0], vectors[0][1] ])
+
         return moves
     
     # récupère le move set d'un cavalier
     def knight_moveset(self, pieces_list):
-        return [ [-1, -2], [1, -2], [-1, 2], [1, 2], [-2, -1], [-2, 1], [2, -1], [2, 1] ]
+        moves = []
+
+        # knight only
+        if self.type != 1:
+            return
+
+        vectors = [ [-1, -2], [1, -2], [-1, 2], [1, 2], [-2, -1], [-2, 1], [2, -1], [2, 1] ]
+
+        for i in range(len(vectors)):
+
+            # ajuste les coordonnées avec le vecteur
+            x = self.xy[0] + vectors[i][0]
+            y = self.xy[1] + vectors[i][1]
+
+            # check les bords du plateau
+            if x < 0 or x > 7 or y < 0 or y > 7:
+                continue
+
+            # check si la case est occupée par une pièce, sinon append le move
+            new_x = x * self.size_unit
+            new_y = y * self.size_unit
+
+            if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                continue
+           
+            moves.append([ vectors[i][0], vectors[i][1] ])
+
+        return moves
     
     # récupère le move set d'un fou
     def bishop_moveset(self, pieces_list):
@@ -153,8 +169,8 @@ class Piece:
             vector = [ [-1, -1], [1, -1], [-1, 1], [1, 1]]
             
             for i in range(4):
-                x = self.coordinates[0]/self.size_unit
-                y = self.coordinates[1]/self.size_unit
+                x = self.xy[0]
+                y = self.xy[1]
                 loop = True
                 vX = 0
                 vY = 0
@@ -167,14 +183,14 @@ class Piece:
                     y = y + vector[i][1]
 
                     # check si la case est occupée par une pièce
-                    #new_x = x * self.size_unit
-                    #new_y = y * self.size_unit
-                    #if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
-                    #        loop = False
-                    #        continue
+                    new_x = x * self.size_unit
+                    new_y = y * self.size_unit
+                    if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                            loop = False
+                            continue
 
                     # quand x ou y arrive au bord du plateau stop cette loop
-                    if x < 0 or y < 0 or x >= 8 or y >= 8:
+                    if x < 0 or y < 0 or x > 7 or y > 7:
                         loop = False
 
                     # augmente la distance parcourue à chaque loop
@@ -194,8 +210,8 @@ class Piece:
             vector = [ [-1, 0], [0, -1], [1, 0], [0, 1]]
             
             for i in range(4):
-                x = self.coordinates[0]/self.size_unit
-                y = self.coordinates[1]/self.size_unit
+                x = self.xy[0]
+                y = self.xy[1]
                 loop = True
                 vX = 0
                 vY = 0
@@ -208,14 +224,14 @@ class Piece:
                     y = y + vector[i][1]
 
                     # check si la case est occupée par une pièce
-                    #new_x = x * self.size_unit
-                    #new_y = y * self.size_unit
-                    #if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
-                    #        loop = False
-                    #        continue
+                    new_x = x * self.size_unit
+                    new_y = y * self.size_unit
+                    if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                            loop = False
+                            continue
 
                     # quand x ou y arrive au bord du plateau stop cette loop
-                    if x < 0 or y < 0 or x >= 8 or y >= 8:
+                    if x < 0 or y < 0 or x > 7 or y > 7:
                         loop = False
 
                     # augmente la distance parcourue à chaque loop
@@ -234,12 +250,32 @@ class Piece:
         return moves
     
     # récupère le move set d'un roi
-    def king_moveset(self, piece_list):
+    def king_moveset(self, pieces_list):
         moves = []
         
         # white king and black king
-        if self.type == 5:
-            moves = [ [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1] ]
+        if self.type != 5:
+            return
+
+        vectors = [ [-1, 0], [-1, -1], [0, -1], [1, -1], [1, 0], [1, 1], [0, 1], [-1, 1] ]
+
+        for i in range(len(vectors)):
+            
+            # ajuste les coordonnées avec le vecteur
+            x = self.xy[0] + vectors[i][0]
+            y = self.xy[1] + vectors[i][1]
+
+            # check les bords du plateau
+            if x < 0 or x > 7 or y < 0 or y > 7:
+                continue
+
+            # check si la case est occupée par une pièce, sinon append le move
+            new_x = x * self.size_unit
+            new_y = y * self.size_unit
+
+            if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                continue
+           
+            moves.append([ vectors[i][0], vectors[i][1] ])
 
         return moves
-        pass

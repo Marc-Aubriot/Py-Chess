@@ -6,7 +6,7 @@ class Board:
     def __init__(self, board_id, board_width, board_height, tile_size_unit) -> None:
         self.id = board_id                          # str: uuid?
         self.tile_size = tile_size_unit             # int: px
-        self.board = self.board_content()           # hashmap: key:STRING value:STRING
+        #self.board = self.board_content()           # hashmap: key:STRING value:STRING
         self.pieces_list = self.populate_board()    # array[Object*]: contient les Pièces
         self.img = pygame.transform.scale(pygame.image.load("./assets/chess_board_1.png"), (board_width,board_height))
 
@@ -192,7 +192,5 @@ class Board:
     # bouge la piece à destination
     def move_piece(self, piece, chess_tile_name):
         piece.update_coordinate(chess_tile_name)
-
-    # update le plateau
-    def update_board(self):
-        print("update board")
+        piece.move_count += 1
+        print(piece.move_count)

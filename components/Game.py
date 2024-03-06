@@ -23,7 +23,7 @@ class Game:
         self.display = pygame.display.set_mode((self.display_width,self.display_height))
 
         # game var
-        #self.turn_count = 0                         # int: le nombre de tour
+        self.turn_count = 0                         # int: le nombre de tour
         self.active_player = 0                      # int: player_id
         self.active_piece_id = None                 # str: piece_id
 
@@ -115,7 +115,6 @@ class Game:
             tile_name = self.helper.get_tile_name((x, y), self.tile_size)
             if self.board.is_move_valid(active_piece, new_destination) == True:
                 self.board.move_piece(active_piece, tile_name)
-                self.board.update_board()
                 self.next_turn()
             else:
                 print("déplacement non permis")
@@ -125,6 +124,16 @@ class Game:
         if self.active_piece_id != None:
             self.active_piece_id = None
 
-    # switch le joueur
+    # passe au tour suivant => switch le joueur et update les variables du jeu
     def next_turn(self):
-        print("next turn")
+        
+        # switch le joueur
+        if self.active_player == 0:
+            self.active_player = 1
+        else:
+            self.active_player = 0
+        
+        # update les variables
+        self.active_piece_id = None
+        self.turn_count += 1
+        
