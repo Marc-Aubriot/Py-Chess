@@ -124,7 +124,7 @@ class Board:
             Piece("black_bishop_2", 2, 1, "F8", self.tile_size, 23),
             # white rook
             Piece("white_rook_1", 3, 0, "A1", self.tile_size, 24),
-            Piece("white_rook_1", 3, 0, "H1", self.tile_size, 25),
+            Piece("white_rook_2", 3, 0, "H1", self.tile_size, 25),
             # black rook
             Piece("black_rook_1", 3, 1, "A8", self.tile_size, 26),
             Piece("black_rook_2", 3, 1, "H8", self.tile_size, 27),
@@ -169,7 +169,11 @@ class Board:
         for dest in destinations:
             new_x = piece.coordinates[0]+dest[0]*piece.size_unit
             new_y = piece.coordinates[1]+dest[1]*piece.size_unit
-            pygame.draw.rect(display, (0, 255, 0), (new_x, new_y, piece.size_unit, piece.size_unit), 4)
+
+            if len(dest)>2 and dest[2] == True:
+                pygame.draw.rect(display, (255, 0, 0), (new_x, new_y, piece.size_unit, piece.size_unit), 4)
+            else:
+                pygame.draw.rect(display, (0, 255, 0), (new_x, new_y, piece.size_unit, piece.size_unit), 4)
 
     # vérifie si le move est valide
     def is_move_valid(self, piece, destination):

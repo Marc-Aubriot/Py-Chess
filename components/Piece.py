@@ -90,8 +90,15 @@ class Piece:
     # check si une pièce se trouve aux coordonnées
     def check_piece_at_coordinates(self, coordinates, pieces_list):
         for piece in pieces_list:
-            if piece.coordinates == (coordinates[0], coordinates[1]):  
+            if piece.coordinates == (coordinates[0], coordinates[1]):
+
+                # piece adverse
+                if self.color != piece.color:
+                    return "capture"  
+                
                 return True
+            
+        return False
 
     # récupère le move set d'un pion
     def pawn_moveset(self, pieces_list):
@@ -100,32 +107,47 @@ class Piece:
         # pawn only
         if self.type != 0:
             return
-        
-        # pawn first move
-        if self.move_count == 0:
-            if self.color == 0:
-                moves = [ [0,-1], [0,-2] ]
-                return moves
-            else :
-                moves = [ [0,1], [0,2] ]
-                return moves
 
-        # pawn other moves
-        else:
-            if self.color == 0:
-                vectors = [ [0,-1] ]
-            else :
-                vectors = [ [0,1] ]
+        for i in range(3):
 
-            x = self.xy[0] + vectors[0][0]
-            y = self.xy[1] + vectors[0][1]
+            # les moves en fonction du tour et de la couleur
+            if self.color == 0 and self.move_count == 0:
+                vectors = [ [-1, -1], [0,-1], [1, -1], [0, -2] ]
+            elif self.color == 1 and self.move_count == 0:
+                vectors = [ [-1, 1], [0,1], [1, 1], [0, 2] ]
+            elif self.color == 0 and self.move_count != 0:
+                vectors = [ [-1, -1], [0,-1], [1, -1] ]
+            elif self.color == 1 and self.move_count != 0:
+                vectors = [ [-1, 1], [0,1], [1, 1] ]
+
+            x = self.xy[0] + vectors[i][0]
+            y = self.xy[1] + vectors[i][1]
 
             # check si la case est occupée par une pièce, sinon append le move
             new_x = x * self.size_unit
             new_y = y * self.size_unit
 
-            if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) != True:
-                moves.append([ vectors[0][0], vectors[0][1] ])
+            # pion sur case de gauche => prise
+            if i == 0 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture":
+                moves.append([ vectors[i][0], vectors[i][1], True ])
+                continue
+            
+            # pion sur case devant => piece n'avance pas
+            elif i == 1 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture":
+                continue
+            
+            # case devant libre => piece avance
+            elif i == 1 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) != True:
+                moves.append([ vectors[i][0], vectors[i][1] ])
+
+                # premier tour du pion, deuxieme case devant libre => piece avance 2 cases
+                if self.move_count == 0 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) != True:
+                    moves.append([ vectors[3][0], vectors[3][1] ])
+
+            # pion sur case de droite => prise
+            elif i == 2 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture":
+                moves.append([ vectors[i][0], vectors[i][1], True ])
+                continue
 
         return moves
     
@@ -155,7 +177,10 @@ class Piece:
 
             if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
                 continue
-           
+            elif self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture": 
+                moves.append([ vectors[i][0], vectors[i][1], True ])
+                continue
+
             moves.append([ vectors[i][0], vectors[i][1] ])
 
         return moves
@@ -174,20 +199,28 @@ class Piece:
                 loop = True
                 vX = 0
                 vY = 0
+                enemy_piece_can_be_taken = False
 
                 # calculte les destinations tant qu'on est dans le plateau
                 while(loop):
+
+                    # fin du move dans cette trajectoire
+                    if enemy_piece_can_be_taken == True:
+                        loop = False
+                        continue
 
                     # ajuste les coordonnées avec le vecteur
                     x = x + vector[i][0]
                     y = y + vector[i][1]
 
-                    # check si la case est occupée par une pièce
+                    # check si la case est occupée par une pièce, si pièce enenmie lève un flag de capture
                     new_x = x * self.size_unit
                     new_y = y * self.size_unit
                     if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
-                            loop = False
-                            continue
+                        loop = False
+                        continue
+                    elif self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture": 
+                        enemy_piece_can_be_taken = True
 
                     # quand x ou y arrive au bord du plateau stop cette loop
                     if x < 0 or y < 0 or x > 7 or y > 7:
@@ -197,7 +230,10 @@ class Piece:
                     elif loop == True:
                         vX = vX + vector[i][0]
                         vY = vY + vector[i][1]
-                        moves.append([ vX, vY ])
+                        if enemy_piece_can_be_taken == True:
+                            moves.append([ vX, vY, True ])
+                        else:
+                            moves.append([ vX, vY ])
 
         return moves
 
@@ -215,9 +251,15 @@ class Piece:
                 loop = True
                 vX = 0
                 vY = 0
+                enemy_piece_can_be_taken = False
 
                 # calculte les destinations tant qu'on est dans le plateau
                 while(loop):
+
+                    # fin du move dans cette trajectoire
+                    if enemy_piece_can_be_taken == True:
+                        loop = False
+                        continue
 
                     # ajuste les coordonnées avec le vecteur
                     x = x + vector[i][0]
@@ -227,8 +269,10 @@ class Piece:
                     new_x = x * self.size_unit
                     new_y = y * self.size_unit
                     if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
-                            loop = False
-                            continue
+                        loop = False
+                        continue
+                    elif self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture": 
+                        enemy_piece_can_be_taken = True
 
                     # quand x ou y arrive au bord du plateau stop cette loop
                     if x < 0 or y < 0 or x > 7 or y > 7:
@@ -238,7 +282,10 @@ class Piece:
                     elif loop == True:
                         vX = vX + vector[i][0]
                         vY = vY + vector[i][1]
-                        moves.append([ vX, vY ])
+                        if enemy_piece_can_be_taken == True:
+                            moves.append([ vX, vY, True ])
+                        else:
+                            moves.append([ vX, vY ])
 
         return moves
     
@@ -274,6 +321,9 @@ class Piece:
             new_y = y * self.size_unit
 
             if self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == True:
+                continue
+            elif self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture": 
+                moves.append([ vectors[i][0], vectors[i][1], True ])
                 continue
            
             moves.append([ vectors[i][0], vectors[i][1] ])
