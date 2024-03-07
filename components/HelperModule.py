@@ -16,7 +16,7 @@ class HelperModule:
     
     # récupère la Pièce dans une liste de Pièce grâce à son ID
     # INPUT =   STRING: id, ARRAY[OBJECT*]: piece list
-    # OUTPUT =  OBJECT: Piece
+    # OUTPUT =  INT: index dans la liste
     def get_piece_index_by_id(self, piece_id, piece_list):
         index = 0
         for piece in piece_list:

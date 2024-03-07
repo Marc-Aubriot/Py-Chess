@@ -5,13 +5,14 @@ from components.HelperModule import HelperModule
 class Board:
 
     def __init__(self, board_id, board_width, board_height, tile_size_unit) -> None:
-        self.id = board_id                          # str: uuid?
-        self.tile_size = tile_size_unit             # int: px
-        self.pieces_list = self.populate_board()    # array[Object*]: contient les Pièces
-        self.img = pygame.transform.scale(pygame.image.load("./assets/chess_board_1.png"), (board_width,board_height))
-        self.helper = HelperModule(f"board_helper")
+        self.id = board_id                          # STRING
+        self.tile_size = tile_size_unit             # INT
+        self.pieces_list = self.populate_board()    # ARRAY[OBJECT(Piece)*]
+        self.img = pygame.transform.scale(pygame.image.load("./assets/chess_board_1.png"), (board_width,board_height))  # SURFACE
+        self.helper = HelperModule(f"board_helper") # objet contenant des méthodes
+        self.piece_checking = None                  # OBJECT(Piece)
 
-    # place les pièces sur le plateau de jeu
+    # ARRAY[OBJECT(Piece)*]: place les pièces sur le plateau de jeu
     def populate_board(self):
         pieces = [
             # id, type, color, chess_tile_name, unit_size(px), index
@@ -62,11 +63,11 @@ class Board:
         ]
         return pieces
 
-    # dessine le plateau
+    # VOID: dessine le plateau
     def draw(self, display):
         display.blit(self.img, (0,0))
 
-    # retourne la piece dans la case de l'event
+    # OBJECT(Piece): retourne la piece dans la case de l'event
     def get_piece(self, event):
         x, y = event[0], event[1]
 
@@ -79,31 +80,43 @@ class Board:
             # x,y dans le body de la pièce => collision => sélectionne la pièce
             if piece_body.collidepoint(x, y):
                 return piece
+
+        return None
     
-    # dessine un rectangle qui montre la sélection de la pièce
+    # VOID: dessine un rectangle qui montre la sélection de la pièce
     def draw_select_icon(self, display, piece):
         pygame.draw.rect(display, (255, 255, 0), (piece.coordinates[0], piece.coordinates[1], piece.size_unit, piece.size_unit), 4)
 
-    # dessine un rectangle autour du roi pour indiquer qu'il est en échec
+    # VOID: dessine un rectangle autour du roi pour indiquer qu'il est en échec
     def draw_king_is_checked(self, display, king):
-        #king = self.helper.get_piece_by_id(king_id, self.pieces_list)
         pygame.draw.rect(display, (255, 0, 0), (king.coordinates[0], king.coordinates[1], king.size_unit, king.size_unit), 4)
 
-    # dessine les mouvements de la pièce sur le plateau
+    # VOID: dessine les mouvements de la pièce sur le plateau
     def draw_moves(self, display, piece, pieces_list):
-        destinations = piece.get_moveset(pieces_list)
+        moves_vector = piece.get_moveset(pieces_list)
+        destinations = self.get_moves_coordinates(piece, moves_vector)
 
         # affiche les destinations possible récupérées
         for dest in destinations:
-            new_x = piece.coordinates[0]+dest[0]*piece.size_unit
-            new_y = piece.coordinates[1]+dest[1]*piece.size_unit
 
             if len(dest)>2 and dest[2] == True:
-                pygame.draw.rect(display, (255, 0, 0), (new_x, new_y, piece.size_unit, piece.size_unit), 4)
+                pygame.draw.rect(display, (255, 0, 0), (dest[0], dest[1], piece.size_unit, piece.size_unit), 4)
             else:
-                pygame.draw.rect(display, (0, 255, 0), (new_x, new_y, piece.size_unit, piece.size_unit), 4)
+                pygame.draw.rect(display, (0, 255, 0), (dest[0], dest[1], piece.size_unit, piece.size_unit), 4)
 
-    # vérifie si le move est valide
+    # ARRAY[TUPPLE(INT,INT)*]: récupère les cases de déplacements valide pour la pièce
+    def get_moves_coordinates(self, piece, moveset):
+        destinations = []
+        for dest in moveset:
+            new_x = piece.coordinates[0]+dest[0]*piece.size_unit
+            new_y = piece.coordinates[1]+dest[1]*piece.size_unit
+            if len(dest)>2 and dest[2] == True:
+                destinations.append([new_x, new_y, True])
+            else:
+                destinations.append([new_x, new_y])
+        return destinations
+
+    # BOOLEAN: vérifie si le move est valide
     def is_move_valid(self, piece, destination):
 
         # récupère le moveset de la pièce et transforme les coordonnées (0:800) en xy (0:7)
@@ -121,25 +134,54 @@ class Board:
 
         return False
 
-    # bouge la piece à destination
-    def move_piece(self, piece, chess_tile_name):
-        piece.update_coordinate(chess_tile_name)
-        piece.move_count += 1
+    # BOOLEAN: bouge la pièce vers une case destination
+    def move_piece(self, piece_id, destination):
 
-    # le joueur prend la pièce cible, update la liste des pièces en jeu
-    def take_piece(self, piece_taken):
+        # récupère la piece active
+        active_piece = self.helper.get_piece_by_id(piece_id, self.pieces_list)
 
-        # récupère l'index de la pièce à supprimer de la liste
-        piece_index = self.helper.get_piece_index_by_id(piece_taken.id, self.pieces_list)
-        self.pieces_list.pop(piece_index)
+        # check si la piece peut bouger à ces coordonnées
+        new_destination = self.helper.get_xy(destination, self.tile_size)
+        tile_name = self.helper.get_tile_name(destination, self.tile_size)
 
-        # supprime les coordonnées de la pièce et empêche la méthode draw
-        piece_taken.xy = None
-        piece_taken.coordinates = None
-        piece_taken.tile_name = None
-        piece_taken.piece_on_table = False
+        if self.is_move_valid(active_piece, new_destination) == True:
+            active_piece.update_coordinate(tile_name)
+            active_piece.move_count += 1
+            return True
+        else:
+            print("déplacement non permis")
+            return False
+        
+    # BOOLEAN: le joueur prend la pièce cible, update la liste des pièces en jeu
+    def take_piece(self, piece_id, destination):
 
-    # check si le roi est en échec
+        # récupère la piece active et la pièce cible
+        active_piece = self.helper.get_piece_by_id(piece_id, self.pieces_list)
+        enemy_piece = self.get_piece(destination)
+
+        # check si la piece peut bouger à ces coordonnées
+        new_destination = self.helper.get_xy(destination, self.tile_size)
+        tile_name = self.helper.get_tile_name(destination, self.tile_size)
+
+        if self.is_move_valid(active_piece, new_destination) == True:
+            active_piece.update_coordinate(tile_name)
+            active_piece.move_count += 1
+
+            # récupère l'index de la pièce à supprimer de la liste
+            piece_index = self.helper.get_piece_index_by_id(enemy_piece.id, self.pieces_list)
+            self.pieces_list.pop(piece_index)
+
+            # supprime les coordonnées de la pièce et empêche la méthode draw
+            enemy_piece.xy = None
+            enemy_piece.coordinates = None
+            enemy_piece.tile_name = None
+            enemy_piece.on_table = False
+            return True
+        else:
+            print("déplacement non permis")
+            return False
+
+    # STRING: check si le roi est en échec
     def is_king_checked(self):
 
         # récupère les coordonnées des 2 rois
@@ -147,8 +189,7 @@ class Board:
         black_king = self.helper.get_piece_by_id("black_king_1", self.pieces_list)
         white_king_position = white_king.xy
         black_king_position = black_king.xy
-        print(f"wk pos: {white_king_position}")
-        print(f"bk pos: {black_king_position}")
+
         # check chaque piece si elle peut bouger sur le roi adverse
         for piece in self.pieces_list:
             destinations = piece.get_moveset(self.pieces_list)
@@ -157,13 +198,46 @@ class Board:
                 x = piece.xy[0] + dest[0]
                 y = piece.xy[1] + dest[1]
 
-                if piece.type == 4 and piece.color == 0:
-                    print(f"queen dest: [{x},{y}]")
-                if piece.color == 1 and white_king_position[0] == x and white_king_position[1] == y:
-                    print("white king checked")
+                # check si la pièce met en échec le king d'un move précédent => annule l'échec temporairement
+                if piece.checking_king == True:
+                    piece.checking_king = False
+                    self.piece_checking = False
+
+                # si roi blanc en échec => garde la pièce et modifie son statut
+                elif piece.color == 1 and white_king_position[0] == x and white_king_position[1] == y:
+                    piece.checking_king = True
+                    self.piece_checking = piece
                     return "white_king_check"
+                
+                # si roi noir en échec => garde la pièce et modifie son statut
                 elif piece.color == 0 and black_king_position[0] == x and black_king_position[1] == y:
-                    print("black king is checked")
+                    piece.checking_king = True
+                    self.piece_checking = piece
                     return "black_king_check"
                 
         return "no"
+    
+    # BOOLEAN: check si la pièce sélectionner peut empêcher la mise en échec de son roi
+    def remove_checked_king(self, piece):
+
+        # récupère les moves de la pièce
+        piece_vector = piece.get_moveset(self.pieces_list)
+        piece_destinations = self.get_moves_coordinates(piece, piece_vector)
+
+        # récupère la pièce qui met échec et son moveset
+        enemy_piece_checking = self.piece_checking
+        enemy_piece_vector = enemy_piece_checking.get_moveset(self.pieces_list)
+
+        # on check le moveset de la piece sélectionnée si elle peut prendre la pièce ennemie pour cas 1 2 3 4 5
+        for dest in piece_destinations:
+            if dest[0] == enemy_piece_checking.coordinates[0] and dest[1] == enemy_piece_checking.coordinates[1]:
+                print(f"la piece peut bouger à ses coordonnées: {dest}")
+                #return [dest[0], dest[1]]
+                return True
+
+        # si la piece ennemie est un pion: il faut bouger le roi ou prendre le pion
+        # knight: il faut bouger le roi ou prendre le knight
+        # fou: il faut bloquer la trajectoire ou prendre le fou
+        # tour: il faut bloquer la trajectoire ou prendre la tour
+        # reine: il faut bloquer la trajectoire ou prendre la reine (get moveset après move de la piece allié)
+        return False
