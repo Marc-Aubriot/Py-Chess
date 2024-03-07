@@ -1,259 +1,243 @@
 import pygame
+from components.Piece import Piece
+from components.HelperModule import HelperModule
 
 class Board:
 
-    def __init__(self, board_width, board_height, tile_size_unit) -> None:
-        self.id = "board_one"   # str: uuid?
-        self.tiles = "hashmap"  # hashmap: Maptile_name "A1" : content "empty" "white_rook" "piece_id"
-        self.size_unit = tile_size_unit
-        self.tiles_coordinates = self.get_tiles_coordinates()   # hashmap: key:"str" value:tupple( x:int, y:int) pygamme coordinates
-        self.tiles_xy = self.get_tiles_xy()   # hashmap: key:"str" value:tupple( x:int, y:int)
-        self.img = pygame.transform.scale(pygame.image.load("./assets/chess_board_1.png"), (board_width,board_height))
+    def __init__(self, board_id, board_width, board_height, tile_size_unit) -> None:
+        self.id = board_id                          # STRING
+        self.tile_size = tile_size_unit             # INT
+        self.pieces_list = self.populate_board()    # ARRAY[OBJECT(Piece)*]
+        self.img = pygame.transform.scale(pygame.image.load("./assets/chess_board_1.png"), (board_width,board_height))  # SURFACE
+        self.helper = HelperModule(f"board_helper") # objet contenant des méthodes
+        self.piece_checking = None                  # OBJECT(Piece)
 
-    # dictionary(key: str, value: tupple(x:int, y:int) ): de chaque case du plateau et ses coordonnées pygame
-    def get_tiles_coordinates(self):
-        unit = self.size_unit
-        hashmap = {
-            # Y0
-            "A8": (0*unit,0*unit),
-            "B8": (1*unit,0*unit),
-            "C8": (2*unit,0*unit),
-            "D8": (3*unit,0*unit),
-            "E8": (4*unit,0*unit),
-            "F8": (5*unit,0*unit),
-            "G8": (6*unit,0*unit),
-            "H8": (7*unit,0*unit),
-            # Y1
-            "A7": (0*unit,1*unit),
-            "B7": (1*unit,1*unit),
-            "C7": (2*unit,1*unit),
-            "D7": (3*unit,1*unit),
-            "E7": (4*unit,1*unit),
-            "F7": (5*unit,1*unit),
-            "G7": (6*unit,1*unit),
-            "H7": (7*unit,1*unit),
-            # Y2
-            "A6": (0*unit,2*unit),
-            "B6": (1*unit,2*unit),
-            "C6": (2*unit,2*unit),
-            "D6": (3*unit,2*unit),
-            "E6": (4*unit,2*unit),
-            "F6": (5*unit,2*unit),
-            "G6": (6*unit,2*unit),
-            "H6": (7*unit,2*unit),
-            # Y3
-            "A5": (0*unit,3*unit),
-            "B5": (1*unit,3*unit),
-            "C5": (2*unit,3*unit),
-            "D5": (3*unit,3*unit),
-            "E5": (4*unit,3*unit),
-            "F5": (5*unit,3*unit),
-            "G5": (6*unit,3*unit),
-            "H5": (7*unit,3*unit),
-            # Y4
-            "A4": (0*unit,4*unit),
-            "B4": (1*unit,4*unit),
-            "C4": (2*unit,4*unit),
-            "D4": (3*unit,4*unit),
-            "E4": (4*unit,4*unit),
-            "F4": (5*unit,4*unit),
-            "G4": (6*unit,4*unit),
-            "H4": (7*unit,4*unit),
-            # Y5
-            "A3": (0*unit,5*unit),
-            "B3": (1*unit,5*unit),
-            "C3": (2*unit,5*unit),
-            "D3": (3*unit,5*unit),
-            "E3": (4*unit,5*unit),
-            "F3": (5*unit,5*unit),
-            "G3": (6*unit,5*unit),
-            "H3": (7*unit,5*unit),
-            # Y6
-            "A2": (0*unit,6*unit),
-            "B2": (1*unit,6*unit),
-            "C2": (2*unit,6*unit),
-            "D2": (3*unit,6*unit),
-            "E2": (4*unit,6*unit),
-            "F2": (5*unit,6*unit),
-            "G2": (6*unit,6*unit),
-            "H2": (7*unit,6*unit),
-            # Y7
-            "A1": (0*unit,7*unit),
-            "B1": (1*unit,7*unit),
-            "C1": (2*unit,7*unit),
-            "D1": (3*unit,7*unit),
-            "E1": (4*unit,7*unit),
-            "F1": (5*unit,7*unit),
-            "G1": (6*unit,7*unit),
-            "H1": (7*unit,7*unit)
-        }
-        return hashmap
-    
-    # dictionary(key: str, value: str ): de chaque case du plateau et son contenu
-    def get_tiles_content(self):
-        unit = self.size_unit
-        hashmap = {
-            # Y0
-            "A8": "empty",
-            "B8": "empty",
-            "C8": "empty",
-            "D8": "empty",
-            "E8": "empty",
-            "F8": "empty",
-            "G8": "empty",
-            "H8": "empty",
-            # Y1
-            "A7": "empty",
-            "B7": "empty",
-            "C7": "empty",
-            "D7": "empty",
-            "E7": "empty",
-            "F7": "empty",
-            "G7": "empty",
-            "H7": "empty",
-            # Y2
-            "A6": "empty",
-            "B6": "empty",
-            "C6": "empty",
-            "D6": "empty",
-            "E6": "empty",
-            "F6": "empty",
-            "G6": "empty",
-            "H6": "empty",
-            # Y3
-            "A5": "empty",
-            "B5": "empty",
-            "C5": "empty",
-            "D5": "empty",
-            "E5": "empty",
-            "F5": "empty",
-            "G5": "empty",
-            "H5": "empty",
-            # Y4
-            "A4": "empty",
-            "B4": "empty",
-            "C4": "empty",
-            "D4": "empty",
-            "E4": "empty",
-            "F4": "empty",
-            "G4": "empty",
-            "H4": "empty",
-            # Y5
-            "A3": "empty",
-            "B3": "empty",
-            "C3": "empty",
-            "D3": "empty",
-            "E3": "empty",
-            "F3": "empty",
-            "G3": "empty",
-            "H3": "empty",
-            # Y6
-            "A2": "empty",
-            "B2": "empty",
-            "C2": "empty",
-            "D2": "empty",
-            "E2": "empty",
-            "F2": "empty",
-            "G2": "empty",
-            "H2": "empty",
-            # Y7
-            "A1": "empty",
-            "B1": "empty",
-            "C1": "empty",
-            "D1": "empty",
-            "E1": "empty",
-            "F1": "empty",
-            "G1": "empty",
-            "H1": "empty",
-        }
-        return hashmap
+    # ARRAY[OBJECT(Piece)*]: place les pièces sur le plateau de jeu
+    def populate_board(self):
+        pieces = [
+            # id, type, color, chess_tile_name, unit_size(px), index
+            # white pawns
+            Piece("white_pawn_1", 0, 0, "A2", self.tile_size, 0),
+            Piece("white_pawn_2", 0, 0, "B2", self.tile_size, 1),
+            Piece("white_pawn_3", 0, 0, "C2", self.tile_size, 2),
+            Piece("white_pawn_4", 0, 0, "D2", self.tile_size, 3),
+            Piece("white_pawn_5", 0, 0, "E2", self.tile_size, 4),
+            Piece("white_pawn_6", 0, 0, "F2", self.tile_size, 5),
+            Piece("white_pawn_7", 0, 0, "G2", self.tile_size, 6),
+            Piece("white_pawn_8", 0, 0, "H2", self.tile_size, 7),
+            # black pawns
+            Piece("black_pawn_1", 0, 1, "A7", self.tile_size, 8),
+            Piece("black_pawn_2", 0, 1, "B7", self.tile_size, 9),
+            Piece("black_pawn_3", 0, 1, "C7", self.tile_size, 10),
+            Piece("black_pawn_4", 0, 1, "D7", self.tile_size, 11),
+            Piece("black_pawn_5", 0, 1, "E7", self.tile_size, 12),
+            Piece("black_pawn_6", 0, 1, "F7", self.tile_size, 13),
+            Piece("black_pawn_7", 0, 1, "G7", self.tile_size, 14),
+            Piece("black_pawn_8", 0, 1, "H7", self.tile_size, 15),
+            # white knight
+            Piece("white_knight_1", 1, 0, "B1", self.tile_size, 16),
+            Piece("white_knight_2", 1, 0, "G1", self.tile_size, 17),
+            # black knight
+            Piece("black_knight_1", 1, 1, "B8", self.tile_size, 18),
+            Piece("black_knight_2", 1, 1, "G8", self.tile_size, 19),
+            # white bishop
+            Piece("white_bishop_1", 2, 0, "C1", self.tile_size, 20),
+            Piece("white_bishop_2", 2, 0, "F1", self.tile_size, 21),
+            # black bishop
+            Piece("black_bishop_1", 2, 1, "C8", self.tile_size, 22),
+            Piece("black_bishop_2", 2, 1, "F8", self.tile_size, 23),
+            # white rook
+            Piece("white_rook_1", 3, 0, "A1", self.tile_size, 24),
+            Piece("white_rook_2", 3, 0, "H1", self.tile_size, 25),
+            # black rook
+            Piece("black_rook_1", 3, 1, "A8", self.tile_size, 26),
+            Piece("black_rook_2", 3, 1, "H8", self.tile_size, 27),
+            # white queen
+            Piece("white_queen_1", 4, 0, "D1", self.tile_size, 28),
+            # black queen
+            Piece("black_queen_1", 4, 1, "D8", self.tile_size, 29),
+            # white king
+            Piece("white_king_1", 5, 0, "E1", self.tile_size, 30),
+            # black king
+            Piece("black_king_1", 5, 1, "E8", self.tile_size, 31),
+        ]
+        return pieces
 
-    # dictionary(key: str, value: tupple(x:int, y:int) ): de chaque case du plateau et ses coordonnées x y
-    def get_tiles_xy(self):
-        hashmap = {
-            # Y0
-            "A8": (0,0),
-            "B8": (1,0),
-            "C8": (2,0),
-            "D8": (3,0),
-            "E8": (4,0),
-            "F8": (5,0),
-            "G8": (6,0),
-            "H8": (7,0),
-            # Y1
-            "A7": (0,1),
-            "B7": (1,1),
-            "C7": (2,1),
-            "D7": (3,1),
-            "E7": (4,1),
-            "F7": (5,1),
-            "G7": (6,1),
-            "H7": (7,1),
-            # Y2
-            "A6": (0,2),
-            "B6": (1,2),
-            "C6": (2,2),
-            "D6": (3,2),
-            "E6": (4,2),
-            "F6": (5,2),
-            "G6": (6,2),
-            "H6": (7,2),
-            # Y3
-            "A5": (0,3),
-            "B5": (1,3),
-            "C5": (2,3),
-            "D5": (3,3),
-            "E5": (4,3),
-            "F5": (5,3),
-            "G5": (6,3),
-            "H5": (7,3),
-            # Y4
-            "A4": (0,4),
-            "B4": (1,4),
-            "C4": (2,4),
-            "D4": (3,4),
-            "E4": (4,4),
-            "F4": (5,4),
-            "G4": (6,4),
-            "H4": (7,4),
-            # Y5
-            "A3": (0,5),
-            "B3": (1,5),
-            "C3": (2,5),
-            "D3": (3,5),
-            "E3": (4,5),
-            "F3": (5,5),
-            "G3": (6,5),
-            "H3": (7,5),
-            # Y6
-            "A2": (0,6),
-            "B2": (1,6),
-            "C2": (2,6),
-            "D2": (3,6),
-            "E2": (4,6),
-            "F2": (5,6),
-            "G2": (6,6),
-            "H2": (7,6),
-            # Y7
-            "A1": (0,7),
-            "B1": (1,7),
-            "C1": (2,7),
-            "D1": (3,7),
-            "E1": (4,7),
-            "F1": (5,7),
-            "G1": (6,7),
-            "H1": (7,7)
-        }
-        return hashmap
-    
-    # void: affiche le plateau et les pièces dans une fenêtre de jeu
+    # VOID: dessine le plateau
     def draw(self, display):
         display.blit(self.img, (0,0))
 
-    # récupère une liste des pièces restantes (et leurs coordonnées ?)
-    def get_pieces_left(self):
-        pass
+    # OBJECT(Piece): retourne la piece dans la case de l'event
+    def get_piece(self, event):
+        x, y = event[0], event[1]
 
-    # rafraichit les cases du plateau
-    def update_board(self):
-        pass
+        # cherche les coordonnées du click dans les pièces
+        for piece in self.pieces_list:
+
+            # créé un body à partir de l'image blit pour détecté la collision
+            piece_body = piece.img.get_rect(topleft=(piece.coordinates[0], piece.coordinates[1]))
+
+            # x,y dans le body de la pièce => collision => sélectionne la pièce
+            if piece_body.collidepoint(x, y):
+                return piece
+
+        return None
+    
+    # VOID: dessine un rectangle qui montre la sélection de la pièce
+    def draw_select_icon(self, display, piece):
+        pygame.draw.rect(display, (255, 255, 0), (piece.coordinates[0], piece.coordinates[1], piece.size_unit, piece.size_unit), 4)
+
+    # VOID: dessine un rectangle autour du roi pour indiquer qu'il est en échec
+    def draw_king_is_checked(self, display, king):
+        pygame.draw.rect(display, (255, 0, 0), (king.coordinates[0], king.coordinates[1], king.size_unit, king.size_unit), 4)
+
+    # VOID: dessine les mouvements de la pièce sur le plateau
+    def draw_moves(self, display, piece, pieces_list):
+        moves_vector = piece.get_moveset(pieces_list)
+        destinations = self.get_moves_coordinates(piece, moves_vector)
+
+        # affiche les destinations possible récupérées
+        for dest in destinations:
+
+            if len(dest)>2 and dest[2] == True:
+                pygame.draw.rect(display, (255, 0, 0), (dest[0], dest[1], piece.size_unit, piece.size_unit), 4)
+            else:
+                pygame.draw.rect(display, (0, 255, 0), (dest[0], dest[1], piece.size_unit, piece.size_unit), 4)
+
+    # ARRAY[TUPPLE(INT,INT)*]: récupère les cases de déplacements valide pour la pièce
+    def get_moves_coordinates(self, piece, moveset):
+        destinations = []
+        for dest in moveset:
+            new_x = piece.coordinates[0]+dest[0]*piece.size_unit
+            new_y = piece.coordinates[1]+dest[1]*piece.size_unit
+            if len(dest)>2 and dest[2] == True:
+                destinations.append([new_x, new_y, True])
+            else:
+                destinations.append([new_x, new_y])
+        return destinations
+
+    # BOOLEAN: vérifie si le move est valide
+    def is_move_valid(self, piece, destination):
+
+        # récupère le moveset de la pièce et transforme les coordonnées (0:800) en xy (0:7)
+        piece_moveset = piece.get_moveset(self.pieces_list)
+        new_destination = (destination[0]*self.tile_size, destination[1]*self.tile_size)
+
+        # affiche les tiles possibles et vérifie que les coordonnées de destinations sont dans les possibilités
+        for tile in piece_moveset:
+            new_x = piece.coordinates[0]+tile[0]*piece.size_unit
+            new_y = piece.coordinates[1]+tile[1]*piece.size_unit
+
+            # si destination = possibilité => le move est possible
+            if new_destination[0] == new_x and new_destination[1] == new_y:
+                return True
+
+        return False
+
+    # BOOLEAN: bouge la pièce vers une case destination
+    def move_piece(self, piece_id, destination):
+
+        # récupère la piece active
+        active_piece = self.helper.get_piece_by_id(piece_id, self.pieces_list)
+
+        # check si la piece peut bouger à ces coordonnées
+        new_destination = self.helper.get_xy(destination, self.tile_size)
+        tile_name = self.helper.get_tile_name(destination, self.tile_size)
+
+        if self.is_move_valid(active_piece, new_destination) == True:
+            active_piece.update_coordinate(tile_name)
+            active_piece.move_count += 1
+            return True
+        else:
+            print("déplacement non permis")
+            return False
+        
+    # BOOLEAN: le joueur prend la pièce cible, update la liste des pièces en jeu
+    def take_piece(self, piece_id, destination):
+
+        # récupère la piece active et la pièce cible
+        active_piece = self.helper.get_piece_by_id(piece_id, self.pieces_list)
+        enemy_piece = self.get_piece(destination)
+
+        # check si la piece peut bouger à ces coordonnées
+        new_destination = self.helper.get_xy(destination, self.tile_size)
+        tile_name = self.helper.get_tile_name(destination, self.tile_size)
+
+        if self.is_move_valid(active_piece, new_destination) == True:
+            active_piece.update_coordinate(tile_name)
+            active_piece.move_count += 1
+
+            # récupère l'index de la pièce à supprimer de la liste
+            piece_index = self.helper.get_piece_index_by_id(enemy_piece.id, self.pieces_list)
+            self.pieces_list.pop(piece_index)
+
+            # supprime les coordonnées de la pièce et empêche la méthode draw
+            enemy_piece.xy = None
+            enemy_piece.coordinates = None
+            enemy_piece.tile_name = None
+            enemy_piece.on_table = False
+            return True
+        else:
+            print("déplacement non permis")
+            return False
+
+    # STRING: check si le roi est en échec
+    def is_king_checked(self):
+
+        # récupère les coordonnées des 2 rois
+        white_king = self.helper.get_piece_by_id("white_king_1", self.pieces_list)
+        black_king = self.helper.get_piece_by_id("black_king_1", self.pieces_list)
+        white_king_position = white_king.xy
+        black_king_position = black_king.xy
+
+        # check chaque piece si elle peut bouger sur le roi adverse
+        for piece in self.pieces_list:
+            destinations = piece.get_moveset(self.pieces_list)
+
+            for dest in destinations:
+                x = piece.xy[0] + dest[0]
+                y = piece.xy[1] + dest[1]
+
+                # check si la pièce met en échec le king d'un move précédent => annule l'échec temporairement
+                if piece.checking_king == True:
+                    piece.checking_king = False
+                    self.piece_checking = False
+
+                # si roi blanc en échec => garde la pièce et modifie son statut
+                elif piece.color == 1 and white_king_position[0] == x and white_king_position[1] == y:
+                    piece.checking_king = True
+                    self.piece_checking = piece
+                    return "white_king_check"
+                
+                # si roi noir en échec => garde la pièce et modifie son statut
+                elif piece.color == 0 and black_king_position[0] == x and black_king_position[1] == y:
+                    piece.checking_king = True
+                    self.piece_checking = piece
+                    return "black_king_check"
+                
+        return "no"
+    
+    # BOOLEAN: check si la pièce sélectionner peut empêcher la mise en échec de son roi
+    def remove_checked_king(self, piece):
+
+        # récupère les moves de la pièce
+        piece_vector = piece.get_moveset(self.pieces_list)
+        piece_destinations = self.get_moves_coordinates(piece, piece_vector)
+
+        # récupère la pièce qui met échec et son moveset
+        enemy_piece_checking = self.piece_checking
+        enemy_piece_vector = enemy_piece_checking.get_moveset(self.pieces_list)
+
+        # on check le moveset de la piece sélectionnée si elle peut prendre la pièce ennemie pour cas 1 2 3 4 5
+        for dest in piece_destinations:
+            if dest[0] == enemy_piece_checking.coordinates[0] and dest[1] == enemy_piece_checking.coordinates[1]:
+                print(f"la piece peut bouger à ses coordonnées: {dest}")
+                #return [dest[0], dest[1]]
+                return True
+
+        # si la piece ennemie est un pion: il faut bouger le roi ou prendre le pion
+        # knight: il faut bouger le roi ou prendre le knight
+        # fou: il faut bloquer la trajectoire ou prendre le fou
+        # tour: il faut bloquer la trajectoire ou prendre la tour
+        # reine: il faut bloquer la trajectoire ou prendre la reine (get moveset après move de la piece allié)
+        return False
