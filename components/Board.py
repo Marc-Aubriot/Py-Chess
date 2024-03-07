@@ -218,7 +218,7 @@ class Board:
         return "no"
     
     # BOOLEAN: check si la pièce sélectionner peut empêcher la mise en échec de son roi
-    def remove_checked_king(self, piece):
+    def remove_checked_king(self, piece, king):
 
         # récupère les moves de la pièce
         piece_vector = piece.get_moveset(self.pieces_list)
@@ -227,17 +227,80 @@ class Board:
         # récupère la pièce qui met échec et son moveset
         enemy_piece_checking = self.piece_checking
         enemy_piece_vector = enemy_piece_checking.get_moveset(self.pieces_list)
+        enemy_piece_destinations = self.get_moves_coordinates(enemy_piece_checking, enemy_piece_vector)
 
-        # on check le moveset de la piece sélectionnée si elle peut prendre la pièce ennemie pour cas 1 2 3 4 5
+        # la pièce sélectionnée peut prendre la pièce ennemie
         for dest in piece_destinations:
             if dest[0] == enemy_piece_checking.coordinates[0] and dest[1] == enemy_piece_checking.coordinates[1]:
-                print(f"la piece peut bouger à ses coordonnées: {dest}")
-                #return [dest[0], dest[1]]
+                print("test case 0")
                 return True
 
-        # si la piece ennemie est un pion: il faut bouger le roi ou prendre le pion
-        # knight: il faut bouger le roi ou prendre le knight
-        # fou: il faut bloquer la trajectoire ou prendre le fou
-        # tour: il faut bloquer la trajectoire ou prendre la tour
+            # pion: il faut bouger le roi 
+            if enemy_piece_checking.type == 0 and piece.type == 5:
+                print("test case 1")
+                return True
+        
+            # knight: il faut bouger le roi
+            if enemy_piece_checking.type == 1 and piece.type == 5:
+                print("test case 2")
+                return True
+        
+            # fou: il faut bloquer la trajectoire ou prendre le fou
+            if enemy_piece_checking.type == 2 or enemy_piece_checking.type == 4:
+                print("test case 3")
+                # pour chaque destination on regarde si une destination de la pièce ennemie est la même
+                for enemy_dest in enemy_piece_destinations:
+
+                    # si une case est partagé, on vérifie que c'est la même ligne qui met en échec le roi
+                    if enemy_dest == dest:
+                        print(dest)
+                        # on explore chaque vecteur jusqu'à arriver à X ou Y de la pièce ennemie, si on tombe sur la piece ennemie c'est bon
+                        vector = [ [-1, -1], [1, -1], [1, 1], [-1, 1]]
+
+                        for i in range(len(vector)):
+                            print(i)
+                            loop = True
+                            x = dest[0]/piece.size_unit
+                            y = dest[1]/piece.size_unit
+                            print(f"piece original xy = ({x},{y})")
+                            target_x = enemy_piece_checking.xy[0]
+                            target_y = enemy_piece_checking.xy[1]
+
+                            while(loop):
+                                print(i)
+                                x = x + vector[i][0]
+                                y = y + vector[i][1]
+                                print(f"piece new xy with vector = ({x},{y})")
+                                # vérifie les limites du plateaua
+                                if x > 7 or x < 0 or y > 7 or y < 0:
+                                    loop = False
+                                    print("out of board")
+                                    continue
+
+                                # on tombe sur la pièce ennemie avec ce vecteur
+                                if x == target_x and y == target_y:
+                                    return True
+
+
+            # tour: il faut bloquer la trajectoire ou prendre la tour, on se positionne soit sur le même X soit sur même Y
+            if enemy_piece_checking.type == 3 or enemy_piece_checking.type == 4:
+                print("test case 4")
+                # si on peut se mettre sur la même colonne vérifie qu'on se trouve entre le roi et la tour
+                if dest[0] == king.xy[0]:
+                    print("meme ligne")
+                    if king.xy[0] > dest[0] and dest[0] > enemy_piece_checking.xy[0]:
+                        return True
+                    elif king.xy[0] < dest[0] and dest[0] < enemy_piece_checking.xy[0]:
+                        return True
+                    
+                # si on peut se mettre sur la même ligne vérifie qu'on se trouve entre le roi et la tour
+                if dest[1] == king.xy[1]:
+                    print("meme colonne")
+                    if king.xy[1] > dest[1] and dest[1] > enemy_piece_checking.xy[1]:
+                        return True
+                    elif king.xy[1] < dest[1] and dest[1] < enemy_piece_checking.xy[1]:
+                        return True
+                           
         # reine: il faut bloquer la trajectoire ou prendre la reine (get moveset après move de la piece allié)
         return False
+    

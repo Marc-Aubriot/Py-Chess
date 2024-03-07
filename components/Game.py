@@ -26,7 +26,7 @@ class Game:
         self.turn_count = 0                         # int: le nombre de tour
         self.active_player = 0                      # int: player_id
         self.active_piece_id = None                 # str: piece_id
-        self.a_king_is_checked = False              # bool: si un roi est échec
+        self.a_king_is_checked = None              # Object(Piece type King): si un roi est échec
         self.turn_over = False
 
         # starting game
@@ -100,10 +100,10 @@ class Game:
             self.active_piece_id = piece.id
 
             # si échec, regarde si les moves de la piece enlève l'échec
-            if self.a_king_is_checked == True:
-                if self.board.remove_checked_king(piece) == True :
+            if self.a_king_is_checked != None:
+                if self.board.remove_checked_king(piece, self.a_king_is_checked) == True :
                     print("cette piece peut interrompre l'échec")
-                elif self.board.remove_checked_king(piece) == False :
+                else:
                     self.active_piece_id = None
                     print("cette pièce ne peut pas interrompre l'échec")
 
@@ -153,15 +153,15 @@ class Game:
         # check si le roi blanc est échec
         if self.board.is_king_checked() == "white_king_check" and white_king.is_checked == False:
             white_king.is_checked = True
-            self.a_king_is_checked = True
+            self.a_king_is_checked = white_king
         elif white_king.is_checked == True and self.board.is_king_checked() == "no":
             white_king.is_checked = False
-            self.a_king_is_checked = False
+            self.a_king_is_checked = None
 
         # check si le roi noir est échec
         if self.board.is_king_checked() == "black_king_check" and black_king.is_checked == False:
             black_king.is_checked = True
-            self.a_king_is_checked = True
+            self.a_king_is_checked = black_king
         elif black_king.is_checked == True and self.board.is_king_checked() == "no":
             black_king.is_checked = False
-            self.a_king_is_checked = False
+            self.a_king_is_checked = None
