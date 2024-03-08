@@ -11,6 +11,55 @@ class Board:
         self.img = pygame.transform.scale(pygame.image.load("./assets/chess_board_1.png"), (board_width,board_height))  # SURFACE
         self.helper = HelperModule(f"board_helper") # objet contenant des méthodes
         self.piece_checking = None                  # OBJECT(Piece)
+        self.gutter = 0                            # INT
+
+    # draw a left & bottom panel
+    def draw_panel(self, display, panel_number, font, active_piece = None):
+        if panel_number == 0:
+            panel = pygame.draw.rect(display, (209,139,71), pygame.Rect(0,0,50,850)) 
+            panel_border = pygame.draw.rect(display, (0,0,0), pygame.Rect(0,0,50,850), 1)
+        if panel_number == 1:
+            panel = pygame.draw.rect(display, (209,139,71), pygame.Rect(50,800,800,50))
+            panel_border = pygame.draw.rect(display, (0,0,0), pygame.Rect(50,800,800,50), 1)  
+        if panel_number == 2:
+            panel = pygame.draw.rect(display, (255,255,255), pygame.Rect(850,0,450,850))
+            panel_border = pygame.draw.rect(display, (0,0,0), pygame.Rect(850,0,450,850), 1)  
+
+
+        # debug panel with pieces id tilename and xy
+        if panel_number == 3:
+            panel_border = pygame.draw.rect(display, (0,0,0), pygame.Rect(0,0,1300,850), 1)  
+
+            loop = 0
+            for piece in self.pieces_list:
+                self.draw_text(display, font, f"{piece.id}: {piece.tile_name} ({piece.xy[0]},{piece.xy[1]}) ({piece.coordinates[0]},{piece.coordinates[1]})", (860,loop*25))
+                loop += 1
+
+        # debug panel avec active piece & destinations
+        if panel_number == 4:
+            piece = self.helper.get_piece_by_id(active_piece, self.pieces_list)
+            self.draw_text(display, font, f"{piece.id}: {piece.tile_name} ({piece.xy[0]},{piece.xy[1]}) ({piece.coordinates[0]},{piece.coordinates[1]})", (860,0))
+            piece_moves = piece.get_moveset(self.pieces_list)
+
+            loop = 0
+            for move in piece_moves:
+
+                new_x = piece.xy[0]+move[0]
+                new_y = piece.xy[1]+move[1]
+                new_dest = (new_x*self.tile_size, new_y*self.tile_size)
+
+                tile_name = self.helper.get_tile_name(new_dest, self.tile_size)
+                if len(move)>2:
+                    self.draw_text(display, font, f"move {loop+1}: {tile_name} ({move[0]},{move[1]}, {move[2]})", (860,25+(loop*25)) )
+                else:
+                    self.draw_text(display, font, f"move {loop+1}: {tile_name} ({move[0]},{move[1]})", (860,25+(loop*25)) )
+                loop  += 1
+
+
+    # draw text
+    def draw_text(self, display, font, text, position, color=(0,0,0)):
+        text = font.render(text, False, color)
+        display.blit(text, position)
 
     # ARRAY[OBJECT(Piece)*]: place les pièces sur le plateau de jeu
     def populate_board(self):
@@ -65,7 +114,8 @@ class Board:
 
     # VOID: dessine le plateau
     def draw(self, display):
-        display.blit(self.img, (0,0))
+        display.fill((125,125,125))
+        display.blit(self.img, (self.gutter, 0))
 
     # OBJECT(Piece): retourne la piece dans la case de l'event
     def get_piece(self, event):
@@ -141,7 +191,7 @@ class Board:
         active_piece = self.helper.get_piece_by_id(piece_id, self.pieces_list)
 
         # check si la piece peut bouger à ces coordonnées
-        new_destination = self.helper.get_xy(destination, self.tile_size)
+        new_destination = self.helper.get_xy(destination, self.tile_size, self.gutter)
         tile_name = self.helper.get_tile_name(destination, self.tile_size)
 
         if self.is_move_valid(active_piece, new_destination) == True:
@@ -229,65 +279,76 @@ class Board:
         enemy_piece_vector = enemy_piece_checking.get_moveset(self.pieces_list)
         enemy_piece_destinations = self.get_moves_coordinates(enemy_piece_checking, enemy_piece_vector)
 
+        king_dest = len(piece_destinations)
+
         # la pièce sélectionnée peut prendre la pièce ennemie
         for dest in piece_destinations:
+            if piece.type == 5 and piece.color == king.color :
+                print(f"king move: {dest}")
+
             if dest[0] == enemy_piece_checking.coordinates[0] and dest[1] == enemy_piece_checking.coordinates[1]:
-                print("test case 0")
+                #print("test case 0")
                 return True
 
             # pion: il faut bouger le roi 
             if enemy_piece_checking.type == 0 and piece.type == 5:
-                print("test case 1")
+                #print("test case 1")
                 return True
         
             # knight: il faut bouger le roi
             if enemy_piece_checking.type == 1 and piece.type == 5:
-                print("test case 2")
+                #print("test case 2")
                 return True
         
             # fou: il faut bloquer la trajectoire ou prendre le fou
             if enemy_piece_checking.type == 2 or enemy_piece_checking.type == 4:
-                print("test case 3")
+                #print("test case 3")
                 # pour chaque destination on regarde si une destination de la pièce ennemie est la même
                 for enemy_dest in enemy_piece_destinations:
 
+                    if piece.type == 5 and piece.color == king.color :
+                        print(f"ennemie move: {enemy_dest}")
+
                     # si une case est partagé, on vérifie que c'est la même ligne qui met en échec le roi
                     if enemy_dest == dest:
-                        print(dest)
+                        #print(dest)
                         # on explore chaque vecteur jusqu'à arriver à X ou Y de la pièce ennemie, si on tombe sur la piece ennemie c'est bon
                         vector = [ [-1, -1], [1, -1], [1, 1], [-1, 1]]
 
                         for i in range(len(vector)):
-                            print(i)
+                            #print(i)
                             loop = True
                             x = dest[0]/piece.size_unit
                             y = dest[1]/piece.size_unit
-                            print(f"piece original xy = ({x},{y})")
+                            #print(f"piece original xy = ({x},{y})")
                             target_x = enemy_piece_checking.xy[0]
                             target_y = enemy_piece_checking.xy[1]
 
                             while(loop):
-                                print(i)
+                                #print(i)
                                 x = x + vector[i][0]
                                 y = y + vector[i][1]
-                                print(f"piece new xy with vector = ({x},{y})")
+                                #print(f"piece new xy with vector = ({x},{y})")
                                 # vérifie les limites du plateaua
                                 if x > 7 or x < 0 or y > 7 or y < 0:
                                     loop = False
-                                    print("out of board")
+                                    #print("out of board")
                                     continue
 
                                 # on tombe sur la pièce ennemie avec ce vecteur
                                 if x == target_x and y == target_y:
                                     return True
-
+                    
+                        if piece.color == king.color and enemy_dest == dest:
+                            king_dest -= 1
+                            return True
 
             # tour: il faut bloquer la trajectoire ou prendre la tour, on se positionne soit sur le même X soit sur même Y
             if enemy_piece_checking.type == 3 or enemy_piece_checking.type == 4:
-                print("test case 4")
+                #print("test case 4")
                 # si on peut se mettre sur la même colonne vérifie qu'on se trouve entre le roi et la tour
                 if dest[0] == king.xy[0]:
-                    print("meme ligne")
+                    #print("meme ligne")
                     if king.xy[0] > dest[0] and dest[0] > enemy_piece_checking.xy[0]:
                         return True
                     elif king.xy[0] < dest[0] and dest[0] < enemy_piece_checking.xy[0]:
@@ -295,12 +356,42 @@ class Board:
                     
                 # si on peut se mettre sur la même ligne vérifie qu'on se trouve entre le roi et la tour
                 if dest[1] == king.xy[1]:
-                    print("meme colonne")
+                    #print("meme colonne")
                     if king.xy[1] > dest[1] and dest[1] > enemy_piece_checking.xy[1]:
                         return True
                     elif king.xy[1] < dest[1] and dest[1] < enemy_piece_checking.xy[1]:
                         return True
-                           
-        # reine: il faut bloquer la trajectoire ou prendre la reine (get moveset après move de la piece allié)
+                    
+        # il reste un move possible au roi
+        if piece.type == 5 and king.color == piece.color:
+            print(king_dest)
+            if king_dest > 0:
+                return True
+            else:
+                return False
+            
         return False
+    
+    # check un échec et met
+    def check_mat(self, king):
+        piece_count = 0
+        finish_check = False
+        print(f"échec sur le roi {king.id}")
+
+        # regarde chaque piece de la même couleur si elle peut empêcher l'échec et mat
+        for piece in self.pieces_list:
+            if self.remove_checked_king(piece, king) == True:
+                if piece.color != king.color:
+                    continue
+                print(piece.id)
+                finish_check = True
+                piece_count += 1
+
+        # retourne le résultat
+        if finish_check == True:
+            print(f"il y'a {piece_count} pièces qui peuvent enlever l'échec et mat")
+            return False
+        else :
+            return True
+        
     

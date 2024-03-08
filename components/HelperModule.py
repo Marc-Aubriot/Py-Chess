@@ -38,9 +38,9 @@ class HelperModule:
     # récupère les coordonnées de la case du plateau d'échec en format x y / size unit
     # INPUT =   TUPPLE(INT,INT): coordonnées en px à partir d'un event click, INT: taille d'une unité en px
     # OUTPUT =  TUPPLE(INT,INT): coordonnées de case (x,y) en unit 
-    def get_xy(self, coordinates, tile_size):
-        x = math.floor(coordinates[0]/tile_size)
-        y = math.floor(coordinates[1]/tile_size)
+    def get_xy(self, coordinates, tile_size, left_gutter=0):
+        x = math.floor((coordinates[0]+left_gutter)/tile_size)
+        y = math.floor((coordinates[1]+left_gutter)/tile_size)
         return (x, y)
 
     # dictionnaire key value contenant le noms des cases du jeu ("A1" etc) et leurs coordonnées x, y
@@ -126,80 +126,80 @@ class HelperModule:
     # dictionnaire key value contenant le noms des cases du jeu ("A1" etc) et les coordonnées display
     # INPUT =   INT: taille des cases du plateau en px
     # OUTPUT =  DICTIONARY( STRING, TUPPLE(INT,INT) ): A1 => 0,800
-    def tile_name_coordinates_dictionary(self, size_unit):
+    def tile_name_coordinates_dictionary(self, size_unit, left_gutter=0):
         unit = size_unit
         hashmap = {
             # Y0
-            "A8": (0*unit,0*unit),
-            "B8": (1*unit,0*unit),
-            "C8": (2*unit,0*unit),
-            "D8": (3*unit,0*unit),
-            "E8": (4*unit,0*unit),
-            "F8": (5*unit,0*unit),
-            "G8": (6*unit,0*unit),
-            "H8": (7*unit,0*unit),
+            "A8": (0*unit+left_gutter,0*unit),
+            "B8": (1*unit+left_gutter,0*unit),
+            "C8": (2*unit+left_gutter,0*unit),
+            "D8": (3*unit+left_gutter,0*unit),
+            "E8": (4*unit+left_gutter,0*unit),
+            "F8": (5*unit+left_gutter,0*unit),
+            "G8": (6*unit+left_gutter,0*unit),
+            "H8": (7*unit+left_gutter,0*unit),
             # Y1
-            "A7": (0*unit,1*unit),
-            "B7": (1*unit,1*unit),
-            "C7": (2*unit,1*unit),
-            "D7": (3*unit,1*unit),
-            "E7": (4*unit,1*unit),
-            "F7": (5*unit,1*unit),
-            "G7": (6*unit,1*unit),
-            "H7": (7*unit,1*unit),
+            "A7": (0*unit+left_gutter,1*unit),
+            "B7": (1*unit+left_gutter,1*unit),
+            "C7": (2*unit+left_gutter,1*unit),
+            "D7": (3*unit+left_gutter,1*unit),
+            "E7": (4*unit+left_gutter,1*unit),
+            "F7": (5*unit+left_gutter,1*unit),
+            "G7": (6*unit+left_gutter,1*unit),
+            "H7": (7*unit+left_gutter,1*unit),
             # Y2
-            "A6": (0*unit,2*unit),
-            "B6": (1*unit,2*unit),
-            "C6": (2*unit,2*unit),
-            "D6": (3*unit,2*unit),
-            "E6": (4*unit,2*unit),
-            "F6": (5*unit,2*unit),
-            "G6": (6*unit,2*unit),
-            "H6": (7*unit,2*unit),
+            "A6": (0*unit+left_gutter,2*unit),
+            "B6": (1*unit+left_gutter,2*unit),
+            "C6": (2*unit+left_gutter,2*unit),
+            "D6": (3*unit+left_gutter,2*unit),
+            "E6": (4*unit+left_gutter,2*unit),
+            "F6": (5*unit+left_gutter,2*unit),
+            "G6": (6*unit+left_gutter,2*unit),
+            "H6": (7*unit+left_gutter,2*unit),
             # Y3
-            "A5": (0*unit,3*unit),
-            "B5": (1*unit,3*unit),
-            "C5": (2*unit,3*unit),
-            "D5": (3*unit,3*unit),
-            "E5": (4*unit,3*unit),
-            "F5": (5*unit,3*unit),
-            "G5": (6*unit,3*unit),
-            "H5": (7*unit,3*unit),
+            "A5": (0*unit+left_gutter,3*unit),
+            "B5": (1*unit+left_gutter,3*unit),
+            "C5": (2*unit+left_gutter,3*unit),
+            "D5": (3*unit+left_gutter,3*unit),
+            "E5": (4*unit+left_gutter,3*unit),
+            "F5": (5*unit+left_gutter,3*unit),
+            "G5": (6*unit+left_gutter,3*unit),
+            "H5": (7*unit+left_gutter,3*unit),
             # Y4
-            "A4": (0*unit,4*unit),
-            "B4": (1*unit,4*unit),
-            "C4": (2*unit,4*unit),
-            "D4": (3*unit,4*unit),
-            "E4": (4*unit,4*unit),
-            "F4": (5*unit,4*unit),
-            "G4": (6*unit,4*unit),
-            "H4": (7*unit,4*unit),
+            "A4": (0*unit+left_gutter,4*unit),
+            "B4": (1*unit+left_gutter,4*unit),
+            "C4": (2*unit+left_gutter,4*unit),
+            "D4": (3*unit+left_gutter,4*unit),
+            "E4": (4*unit+left_gutter,4*unit),
+            "F4": (5*unit+left_gutter,4*unit),
+            "G4": (6*unit+left_gutter,4*unit),
+            "H4": (7*unit+left_gutter,4*unit),
             # Y5
-            "A3": (0*unit,5*unit),
-            "B3": (1*unit,5*unit),
-            "C3": (2*unit,5*unit),
-            "D3": (3*unit,5*unit),
-            "E3": (4*unit,5*unit),
-            "F3": (5*unit,5*unit),
-            "G3": (6*unit,5*unit),
-            "H3": (7*unit,5*unit),
+            "A3": (0*unit+left_gutter,5*unit),
+            "B3": (1*unit+left_gutter,5*unit),
+            "C3": (2*unit+left_gutter,5*unit),
+            "D3": (3*unit+left_gutter,5*unit),
+            "E3": (4*unit+left_gutter,5*unit),
+            "F3": (5*unit+left_gutter,5*unit),
+            "G3": (6*unit+left_gutter,5*unit),
+            "H3": (7*unit+left_gutter,5*unit),
             # Y6
-            "A2": (0*unit,6*unit),
-            "B2": (1*unit,6*unit),
-            "C2": (2*unit,6*unit),
-            "D2": (3*unit,6*unit),
-            "E2": (4*unit,6*unit),
-            "F2": (5*unit,6*unit),
-            "G2": (6*unit,6*unit),
-            "H2": (7*unit,6*unit),
+            "A2": (0*unit+left_gutter,6*unit),
+            "B2": (1*unit+left_gutter,6*unit),
+            "C2": (2*unit+left_gutter,6*unit),
+            "D2": (3*unit+left_gutter,6*unit),
+            "E2": (4*unit+left_gutter,6*unit),
+            "F2": (5*unit+left_gutter,6*unit),
+            "G2": (6*unit+left_gutter,6*unit),
+            "H2": (7*unit+left_gutter,6*unit),
             # Y7
-            "A1": (0*unit,7*unit),
-            "B1": (1*unit,7*unit),
-            "C1": (2*unit,7*unit),
-            "D1": (3*unit,7*unit),
-            "E1": (4*unit,7*unit),
-            "F1": (5*unit,7*unit),
-            "G1": (6*unit,7*unit),
-            "H1": (7*unit,7*unit)
+            "A1": (0*unit+left_gutter,7*unit),
+            "B1": (1*unit+left_gutter,7*unit),
+            "C1": (2*unit+left_gutter,7*unit),
+            "D1": (3*unit+left_gutter,7*unit),
+            "E1": (4*unit+left_gutter,7*unit),
+            "F1": (5*unit+left_gutter,7*unit),
+            "G1": (6*unit+left_gutter,7*unit),
+            "H1": (7*unit+left_gutter,7*unit)
         }
         return hashmap

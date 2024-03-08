@@ -8,8 +8,8 @@ class Game:
     def __init__(self, game_id) -> None:
         # app var
         self.id = game_id                                                                       # str: uuid?
-        self.display_width = 800                                                               # int: px
-        self.display_height = 800                                                               # int: px
+        self.display_width = 1300                                                               # int: px
+        self.display_height = 850                                                               # int: px
         self.board_width = 800                                                                  # int: px
         self.board_height = 800                                                                 # int: px
         self.tile_size = self.board_width/8                                                     # int: px
@@ -20,6 +20,9 @@ class Game:
         self.instance = pygame.init()
         self.title = pygame.display.set_caption("Py chess")
         self.clock = pygame.time.Clock()
+        self.font_system = pygame.font.init()
+        self.font = pygame.font.SysFont('Comic Sans MS', 40)
+        self.font2 = pygame.font.SysFont('Comic Sans MS', 20)
         self.display = pygame.display.set_mode((self.display_width,self.display_height))
 
         # game var
@@ -28,13 +31,15 @@ class Game:
         self.active_piece_id = None                 # str: piece_id
         self.a_king_is_checked = None              # Object(Piece type King): si un roi est échec
         self.turn_over = False
+        self.game = True
 
         # starting game
         self.loop = self.main_loop()
 
     # la loop logique du jeu
     def main_loop(self):
-        while True:
+        loop = True
+        while (loop):
             # player inputs
             self.inputs()
 
@@ -44,6 +49,9 @@ class Game:
 
             # render
             self.render()
+
+            if self.game == False:
+                loop = False
 
     # récupère les inputs du joueur avec pygame
     def inputs(self):
@@ -72,6 +80,31 @@ class Game:
 
         # dessine le plateau
         self.board.draw(self.display)
+        #self.board.draw_panel(self.display, 0, self.font)
+        #self.board.draw_panel(self.display, 1, self.Font)
+        self.board.draw_panel(self.display, 2, self.font)
+
+        if self.active_piece_id != None:
+            self.board.draw_panel(self.display, 4, self.font2, self.active_piece_id)
+        else:
+            self.board.draw_panel(self.display, 3, self.font2)
+
+        self.board.draw_text(self.display, self.font, "8", (810,10))
+        self.board.draw_text(self.display, self.font, "7", (810,110))
+        self.board.draw_text(self.display, self.font, "6", (810,210))
+        self.board.draw_text(self.display, self.font, "5", (810,310))
+        self.board.draw_text(self.display, self.font, "4", (810,410))
+        self.board.draw_text(self.display, self.font, "3", (810,510))
+        self.board.draw_text(self.display, self.font, "2", (810,610))
+        self.board.draw_text(self.display, self.font, "1", (810,710))
+        self.board.draw_text(self.display, self.font, "A", (30,795))
+        self.board.draw_text(self.display, self.font, "B", (130,795))
+        self.board.draw_text(self.display, self.font, "C", (230,795))
+        self.board.draw_text(self.display, self.font, "D", (330,795))
+        self.board.draw_text(self.display, self.font, "E", (430,795))
+        self.board.draw_text(self.display, self.font, "F", (530,795))
+        self.board.draw_text(self.display, self.font, "G", (630,795))
+        self.board.draw_text(self.display, self.font, "H", (730,795))
 
         # dessine les pièces
         for piece in self.board.pieces_list:
@@ -152,6 +185,7 @@ class Game:
 
         # check si le roi blanc est échec
         if self.board.is_king_checked() == "white_king_check" and white_king.is_checked == False:
+            print("check")
             white_king.is_checked = True
             self.a_king_is_checked = white_king
         elif white_king.is_checked == True and self.board.is_king_checked() == "no":
@@ -160,8 +194,19 @@ class Game:
 
         # check si le roi noir est échec
         if self.board.is_king_checked() == "black_king_check" and black_king.is_checked == False:
+            print("check")
             black_king.is_checked = True
             self.a_king_is_checked = black_king
         elif black_king.is_checked == True and self.board.is_king_checked() == "no":
             black_king.is_checked = False
             self.a_king_is_checked = None
+
+        # check mat
+        if self.a_king_is_checked != None:
+            if self.board.check_mat(self.a_king_is_checked) == True:
+                self.game_over()
+
+    # fin de la partie
+    def game_over(self):
+        print("game over")
+        self.game = False

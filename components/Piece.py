@@ -10,11 +10,11 @@ class Piece:
         self.size_unit = tile_size_unit # int: la taille en px du carré représentant l'objet
         self.piece_list_index = pieces_list_index   # int:  son index dans la liste des pieces de Game
         self.coordinates = None          # tupple[int,int] : [x,y]
+        self.left_gutter = 0
         self.xy =   None
         self.tile_name = None
         self.img = pygame.transform.scale(pygame.image.load(self.get_image()), (85,85))     # method: load the correct img
         self.move_count = 0        # int: compte les moves 
-        #self.detect_colision = True     # bool: détecte la colision entre les pièces
         self.helper = HelperModule(f"pawn_{id}_helper")
         self.on_table = True
         self.is_checked = False
@@ -25,7 +25,7 @@ class Piece:
     # update les 3 types de coordonnées de l'objet Piece
     def update_coordinate(self, chess_tile_name):
         self.tile_name = chess_tile_name
-        coordinates = self.helper.tile_name_coordinates_dictionary(self.size_unit)
+        coordinates = self.helper.tile_name_coordinates_dictionary(self.size_unit, self.left_gutter)
         self.coordinates = coordinates[chess_tile_name]
         xy = self.helper.tile_name_xy_dictionary()
         self.xy = xy[chess_tile_name]
@@ -59,7 +59,7 @@ class Piece:
     # dessine la pièce
     def draw(self, display):
         if self.on_table == True:
-            display.blit(self.img, self.coordinates)
+            display.blit(self.img, (self.coordinates[0], self.coordinates[1]))
 
     # vérifie les possibilités de mouvements de la pièce
     def get_moveset(self, pieces_list):
