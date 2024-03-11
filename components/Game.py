@@ -51,7 +51,8 @@ class Game:
             self.render()
 
             if self.game == False:
-                loop = False
+                print("GAME OVER")
+                #loop = False
 
     # récupère les inputs du joueur avec pygame
     def inputs(self):
@@ -208,5 +209,5 @@ class Game:
 
     # fin de la partie
     def game_over(self):
-        print("game over")
+        print("fx game over")
         self.game = False

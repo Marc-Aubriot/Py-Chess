@@ -281,8 +281,6 @@ class Board:
         enemy_piece_vector = enemy_piece_checking.get_moveset(self.pieces_list)
         enemy_piece_destinations = self.get_moves_coordinates(enemy_piece_checking, enemy_piece_vector)
 
-        king_dest = len(piece_destinations)
-
         # la pièce sélectionnée peut prendre la pièce ennemie
         for dest in piece_destinations:
             if piece.type == 5 and piece.color == king.color :
@@ -375,12 +373,26 @@ class Board:
                     
         # il reste un move possible au roi
         if piece.type == 5 and king.color == piece.color:
-            print(king_dest)
-            if king_dest > 0:
-                return True
-            else:
-                return False
+            print("test case 5")
+            king_can_move = True
+
+            for dest in piece_destinations:
+
+                for enemy_dest in enemy_piece_destinations:
+                    
+                    if dest == enemy_dest:
+                       print("king cannot move")
+                       king_can_move = False
+                       print(king_can_move)
+                       print(dest)
+                       print(enemy_dest)
             
+            if king_can_move == True:
+                print(king_can_move)
+                print("king can move")
+                return True
+            
+        print("returning default false")
         return False
     
     # check un échec et met
