@@ -71,7 +71,7 @@ class Game:
                 # right click
                 elif pygame.mouse.get_pressed()[2]:
                     self.check_right_click((x, y))
-
+        
     # dessine le jeu
     def render(self):
         pygame.display.flip()                                           # Refresh on-screen display

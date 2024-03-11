@@ -112,16 +112,12 @@ class Piece:
         if self.type != 0:
             return
 
-        for i in range(3):
+        for i in range(2):
 
             # les moves en fonction du tour et de la couleur
-            if self.color == 0 and self.move_count == 0:
-                vectors = [ [-1, -1], [0,-1], [1, -1], [0, -2] ]
-            elif self.color == 1 and self.move_count == 0:
-                vectors = [ [-1, 1], [0,1], [1, 1], [0, 2] ]
-            elif self.color == 0 and self.move_count != 0:
+            if self.color == 0:
                 vectors = [ [-1, -1], [0,-1], [1, -1] ]
-            elif self.color == 1 and self.move_count != 0:
+            elif self.color == 1:
                 vectors = [ [-1, 1], [0,1], [1, 1] ]
 
             x = self.xy[0] + vectors[i][0]
@@ -131,24 +127,32 @@ class Piece:
             new_x = x * self.size_unit
             new_y = y * self.size_unit
 
-            # pion sur case de gauche => prise
+            # pion sur case de gauche => prise de pièce
             if i == 0 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture":
                 moves.append([ vectors[i][0], vectors[i][1], True ])
                 continue
             
-            # pion sur case devant => piece n'avance pas
+            # pion sur case devant => n'avance pas
             elif i == 1 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture":
                 continue
             
-            # case devant libre => piece avance
+            # case devant libre => avance 1 case
             elif i == 1 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) != True:
                 moves.append([ vectors[i][0], vectors[i][1] ])
 
-                # premier tour du pion, deuxieme case devant libre => piece avance 2 cases
-                if self.move_count == 0 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) != True:
-                    moves.append([ vectors[3][0], vectors[3][1] ])
+             # calcule les coordonnées du deuxième move
+            if i == 1 and self.color == 0: 
+                case_devant_y = new_y - 100
+                last_move = [0, -2]
+            elif i == 1 and self.color == 1:
+                case_devant_y = new_y + 100
+                last_move = [0 ,2]
 
-            # pion sur case de droite => prise
+            # seconde case devant vide => avance 2 cases
+            if i == 1 and self.move_count == 0 and self.check_piece_at_coordinates( (new_x, case_devant_y), pieces_list) == False:
+                moves.append(last_move)
+
+            # pion sur case de droite => prise de pièce
             elif i == 2 and self.check_piece_at_coordinates( (new_x, new_y), pieces_list) == "capture":
                 moves.append([ vectors[i][0], vectors[i][1], True ])
                 continue
